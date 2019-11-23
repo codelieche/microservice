@@ -1,0 +1,21 @@
+
+# 项目配置文件
+
+# web相关配置
+http:
+  host: 0.0.0.0
+  port: 9000
+  basicauth:
+    user01: password01
+    user02: password02
+    user03: password03
+# 数据库相关配置
+database:
+  host: "${MYSQL_HOST:127.0.0.1}"
+  port: ${MYSQL_PORT:3306}
+  user: "${MYSQL_USER:root}"
+  password: "${MYSQL_PASSWORD}"
+  database: "${MYSQL_DB_NAME:usercenter}"
+
+# 是否为开发环境
+debug: false
