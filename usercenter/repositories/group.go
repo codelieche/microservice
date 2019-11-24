@@ -17,6 +17,8 @@ type GroupRepository interface {
 	GetByIdOrName(idOrName string) (*datamodels.Group, error)
 	// 获取分组的用户列表
 	GetUserList(group *datamodels.Group, offset int, limit int) ([]*datamodels.User, error)
+	// 获取分组的权限列表
+	GetPermissionList(group *datamodels.Group, offset int, limit int) ([]*datamodels.Permission, error)
 }
 
 func NewGroupRepository(db *gorm.DB) GroupRepository {
@@ -90,5 +92,15 @@ func (r *groupRepository) GetUserList(
 		return nil, query.Error
 	} else {
 		return users, nil
+	}
+}
+
+// 获取分组的权限列表
+func (r *groupRepository) GetPermissionList(group *datamodels.Group, offset int, limit int) (permissions []*datamodels.Permission, err error) {
+	query := r.db.Model(group).Offset(offset).Limit(limit).Related(&permissions, "Permissions")
+	if query.Error != nil {
+		return nil, query.Error
+	} else {
+		return permissions, nil
 	}
 }

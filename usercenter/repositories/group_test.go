@@ -38,14 +38,14 @@ func TestGroupRepository_List(t *testing.T) {
 	db := datasources.GetDb()
 
 	// 2. init group repository
-	groupRepository := NewGroupRepository(db)
+	r := NewGroupRepository(db)
 
 	// 3. 测试获取分组列表
 	haveNext := true
 	offset := 0
 	limit := 5
 	for haveNext {
-		if groups, err := groupRepository.List(offset, limit); err != nil {
+		if groups, err := r.List(offset, limit); err != nil {
 			t.Error(err.Error())
 		} else {
 			// 判断是否还有下一页
@@ -58,6 +58,45 @@ func TestGroupRepository_List(t *testing.T) {
 			// 输出分组
 			for _, group := range groups {
 				log.Println(group.ID, group.Name)
+			}
+		}
+	}
+
+}
+
+func TestGroupRepository_GetUserList(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init group repository
+	r := NewGroupRepository(db)
+
+	// 3. 测试获取分组
+	var groupId int64 = 1
+
+	if group, err := r.Get(groupId); err != nil {
+		t.Error(err.Error())
+		return
+	} else {
+		haveNext := true
+		offset := 0
+		limit := 5
+		for haveNext {
+			if users, err := r.GetUserList(group, offset, limit); err != nil {
+				t.Error(err.Error())
+				haveNext = false
+			} else {
+				// 判断是否还有下一页
+				if len(users) == limit && limit > 0 {
+					haveNext = true
+					offset += limit
+				} else {
+					haveNext = false
+				}
+				// 输出用户
+				for _, user := range users {
+					log.Println(group.Name, user.ID, user.Username)
+				}
 			}
 		}
 	}

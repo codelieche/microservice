@@ -27,4 +27,43 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.UserController))
 	})
 
+	// 分组相关api
+	mvc.Configure(apiV1.Party("/group"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewGroupRepository(db)
+		// 实例化Group的Service
+		gService := services.NewGroupService(repo)
+		// 注册Service
+		app.Register(gService)
+		// 添加Crontroller
+		app.Handle(new(controllers.GroupController))
+	})
+
+	// 角色相关api
+	mvc.Configure(apiV1.Party("/role"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewRoleRepository(db)
+		// 实例化Group的Service
+		gService := services.NewRoleService(repo)
+		// 注册Service
+		app.Register(gService)
+		// 添加Crontroller
+		app.Handle(new(controllers.RoleController))
+	})
+
+	// 权限相关api
+	mvc.Configure(apiV1.Party("/permission"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewPermissionRepository(db)
+		// 实例化Service
+		pService := services.NewPermissionService(repo)
+		// 注册Service
+		app.Register(pService)
+		// 添加Crontroller
+		app.Handle(new(controllers.PermissionController))
+	})
+
 }

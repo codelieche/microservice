@@ -63,3 +63,30 @@ func TestRoleRepository_List(t *testing.T) {
 	}
 
 }
+
+func TestRoleRepository_Get(t *testing.T) {
+	// 获取角色
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init role repository
+	r := NewRoleRepository(db)
+
+	var idOrname string = "1"
+
+	// 3. get role
+	if role, err := r.GetByIdOrName(idOrname); err != nil {
+		t.Error(err.Error())
+		return
+	} else {
+		log.Println(role)
+		// 4. 获取Role的用户
+		if users, err := r.GetUserList(role, 0, 10); err != nil {
+			t.Error(err.Error())
+		} else {
+			for _, user := range users {
+				log.Println(role.Name, user.ID, user.Username)
+			}
+		}
+	}
+}

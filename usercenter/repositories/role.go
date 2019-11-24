@@ -17,6 +17,8 @@ type RoleRepository interface {
 	GetByIdOrName(idOrName string) (*datamodels.Role, error)
 	// 获取Role的用户列表
 	GetUserList(role *datamodels.Role, offset int, limit int) ([]*datamodels.User, error)
+	// 获取Role的权限列表
+	GetPermissionList(role *datamodels.Role, offset int, limit int) ([]*datamodels.Permission, error)
 }
 
 func NewRoleRepository(db *gorm.DB) RoleRepository {
@@ -90,5 +92,15 @@ func (r *roleRepository) GetUserList(
 		return nil, query.Error
 	} else {
 		return users, nil
+	}
+}
+
+// 获取角色的权限列表
+func (r *roleRepository) GetPermissionList(role *datamodels.Role, offset int, limit int) (permissions []*datamodels.Permission, err error) {
+	query := r.db.Model(role).Offset(offset).Limit(limit).Related(&permissions, "Permissions")
+	if query.Error != nil {
+		return nil, query.Error
+	} else {
+		return permissions, nil
 	}
 }
