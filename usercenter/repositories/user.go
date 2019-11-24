@@ -9,20 +9,21 @@ import (
 )
 
 type UserRepository interface {
-	// 保存分组
+	// 保存User
 	Save(user *datamodels.User) (*datamodels.User, error)
 	// 设置用户密码
 	SetUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
-	// 获取分组的列表
+	// 获取User的列表
 	List(offset int, limit int) ([]*datamodels.User, error)
-	// 获取分组信息
+	// 获取User信息
 	Get(id int64) (*datamodels.User, error)
-	// 根据ID或者Name获取分组信息
+	// 根据ID或者Name获取User信息
 	GetByIdOrName(idOrName string) (*datamodels.User, error)
-	// 获取分组的用户列表
+	// 获取User的用户列表
 	GetUserList(user *datamodels.User, offset int, limit int) ([]*datamodels.User, error)
 	//	获取用户的分组列表
 	GetUserGroups(user *datamodels.User) (groups []*datamodels.Group, err error)
+	// 获取用户的角色列表
 	GetUserRoles(user *datamodels.User) (roles []*datamodels.Role, err error)
 }
 
@@ -85,10 +86,9 @@ func (r *userRepository) List(offset int, limit int) (users []*datamodels.User, 
 	} else {
 		return users, nil
 	}
-	return
 }
 
-// 根据ID获取分组
+// 根据ID获取User
 func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 
 	user = &datamodels.User{}
@@ -100,11 +100,11 @@ func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 	}
 }
 
-// 根据ID/Name获取分组
+// 根据ID/Name获取User
 func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, err error) {
 
 	user = &datamodels.User{}
-	r.db.First(user, "id = ? or name = ?", idOrName, idOrName)
+	r.db.First(user, "id = ? or username = ?", idOrName, idOrName)
 	if user.ID > 0 {
 		return user, nil
 	} else {
@@ -112,7 +112,7 @@ func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, 
 	}
 }
 
-// 获取分组的用户
+// 获取User的用户
 func (r *userRepository) GetUserList(
 	user *datamodels.User, offset int, limit int) (users []*datamodels.User, err error) {
 	query := r.db.Model(user).Offset(offset).Limit(limit).Related(&users, "Users")
@@ -123,7 +123,7 @@ func (r *userRepository) GetUserList(
 	}
 }
 
-// 获取用户的分组
+// 获取用户的User
 func (r *userRepository) GetUserGroups(user *datamodels.User) (groups []*datamodels.Group, err error) {
 	query := r.db.Model(user).Related(&groups, "Groups")
 	if query.Error != nil {
