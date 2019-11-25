@@ -3,6 +3,9 @@ package controllers
 import (
 	"errors"
 
+	"github.com/codelieche/microservice/web/forms"
+	"github.com/go-playground/validator"
+
 	"github.com/codelieche/microservice/datamodels"
 	"github.com/codelieche/microservice/web/services"
 	"github.com/kataras/iris/v12"
@@ -68,6 +71,10 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 		username   = c.Ctx.FormValue("username")
 		password   = c.Ctx.FormValue("password")
 		repassword = c.Ctx.FormValue("repassword")
+		mobile     = c.Ctx.FormValue("mobile")
+		email      = c.Ctx.FormValue("email")
+		userForm   forms.UserCreateForm
+		v          *validator.Validate
 	)
 
 	if password != repassword {
@@ -84,11 +91,24 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 		return nil, err
 	}
 
+	// 验证表单
+	v = validator.New()
+	userForm = forms.UserCreateForm{
+		Username:   username,
+		Password:   password,
+		Repassword: repassword,
+		Mobile:     mobile,
+		Email:      email,
+	}
+	if err = v.Struct(userForm); err != nil {
+		return nil, err
+	}
+
 	user = &datamodels.User{
 		Username:    username,
 		Password:    password,
-		Mobile:      "",
-		Email:       "",
+		Mobile:      mobile,
+		Email:       email,
 		Groups:      nil,
 		Roles:       nil,
 		Permissions: nil,

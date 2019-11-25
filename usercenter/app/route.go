@@ -79,4 +79,14 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.PermissionController))
 	})
 
+	// 添加测试相关api
+	mvc.Configure(app.Party("/demo"), func(app *mvc.Application) {
+
+		// 注册
+		app.Register(sess)
+
+		// 添加Controller
+		app.Handle(new(controllers.DemoController))
+	})
+
 }

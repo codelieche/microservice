@@ -3,6 +3,9 @@ package controllers
 import (
 	"errors"
 
+	"github.com/codelieche/microservice/web/forms"
+	"github.com/go-playground/validator"
+
 	"github.com/kataras/iris/v12/mvc"
 
 	"github.com/codelieche/microservice/datamodels"
@@ -21,6 +24,10 @@ func (c *UserController) PostLogin() (user *datamodels.User, err error) {
 	var (
 		username = c.Ctx.FormValue("username")
 		password = c.Ctx.FormValue("password")
+		mobile   = c.Ctx.FormValue("mobile")
+		email    = c.Ctx.FormValue("email")
+		userForm forms.UserLoginForm
+		v        *validator.Validate
 	)
 	//log.Println(c.Ctx.Request().URL)
 
@@ -39,6 +46,18 @@ func (c *UserController) PostLogin() (user *datamodels.User, err error) {
 	// 判断用户名和密码
 	if password == "" {
 		err = errors.New("password不可为空")
+		return nil, err
+	}
+
+	// 验证表单
+	v = validator.New()
+	userForm = forms.UserLoginForm{
+		Username: username,
+		Password: password,
+		Mobile:   mobile,
+		Email:    email,
+	}
+	if err = v.Struct(userForm); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +140,24 @@ func (c *UserController) PostChangePassword() mvc.Result {
 	var (
 		password   = c.Ctx.FormValue("password")
 		repassword = c.Ctx.FormValue("repassword")
+		userForm   forms.UserChangePasswrodForm
 		user       *datamodels.User
 		err        error
+		v          *validator.Validate
 	)
+
+	// 验证表单
+	userForm = forms.UserChangePasswrodForm{
+		Password:   password,
+		Repassword: repassword,
+	}
+	v = validator.New()
+
+	if err = v.Struct(userForm); err != nil {
+		return mvc.Response{
+			Err: err,
+		}
+	}
 
 	if password != repassword {
 		err = errors.New("密码和确认密码不一样")
