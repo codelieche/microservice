@@ -1,12 +1,17 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/codelieche/microservice/datamodels"
 	"github.com/codelieche/microservice/web/services"
 	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type UserController struct {
+	Session *sessions.Session
+	Ctx     iris.Context
 	Service services.UserService
 }
 
@@ -53,5 +58,47 @@ func (c *UserController) GetListBy(page int, ctx iris.Context) (users []*datamod
 		return nil, false
 	} else {
 		return users, true
+	}
+}
+
+// 注册用户
+func (c *UserController) PostCreate() (user *datamodels.User, err error) {
+	//	定义变量
+	var (
+		username   = c.Ctx.FormValue("username")
+		password   = c.Ctx.FormValue("password")
+		repassword = c.Ctx.FormValue("repassword")
+	)
+
+	if password != repassword {
+		err = errors.New("密码和确认密码不一样")
+		return nil, err
+	}
+
+	if len(username) < 6 {
+		err = errors.New("用户名长度小于6")
+		return nil, err
+	}
+	if len(password) < 8 {
+		err = errors.New("用户密码长度小于8")
+		return nil, err
+	}
+
+	user = &datamodels.User{
+		Username:    username,
+		Password:    password,
+		Mobile:      "",
+		Email:       "",
+		Groups:      nil,
+		Roles:       nil,
+		Permissions: nil,
+	}
+
+	// 保存用户
+	if user, err = c.Service.CreateUser(user); err != nil {
+		return nil, err
+	} else {
+		// 创建用户成功
+		return user, nil
 	}
 }

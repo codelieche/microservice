@@ -18,6 +18,7 @@ func setAppRoute(app *iris.Application) {
 		// session
 		// 注册控制器需要的Session和StartTime
 		app.Register(
+			sess.Start,
 			time.Now(),
 		)
 		app.Handle(new(controllers.IndexController))
@@ -34,7 +35,7 @@ func setAppRoute(app *iris.Application) {
 		// 实例化User的Service
 		uService := services.NewUserService(repo)
 		// 注册Service
-		app.Register(uService)
+		app.Register(uService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.UserController))
 	})

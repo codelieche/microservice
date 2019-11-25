@@ -23,8 +23,8 @@ func TestUserRepository_Save(t *testing.T) {
 	i := 0
 	for i < 10 {
 		i++
-		name := fmt.Sprintf("User:%d", i)
-		password := fmt.Sprintf("Password:%d", i)
+		name := fmt.Sprintf("user%d", i)
+		password := fmt.Sprintf("password%d", i)
 		user := &datamodels.User{
 			Username: name,
 			Password: password,

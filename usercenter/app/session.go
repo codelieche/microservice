@@ -49,7 +49,7 @@ func initSession() {
 		Encode:                      nil,
 		Decode:                      nil,
 		Encoding:                    nil,
-		Expires:                     time.Second * 10,
+		Expires:                     time.Minute * 60,
 		SessionIDGenerator:          nil,
 		DisableSubdomainPersistence: false,
 	})
