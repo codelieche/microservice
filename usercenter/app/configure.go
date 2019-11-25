@@ -1,6 +1,6 @@
 package app
 
-import "github.com/kataras/iris"
+import "github.com/kataras/iris/v12"
 
 // 配置应用
 func appConfigure(app *iris.Application) {

@@ -12,4 +12,7 @@ func handleAppInterupt() {
 	// 关闭数据库连接等
 	db := datasources.GetDb()
 	db.Close()
+
+	// 关闭session的redis数据库
+	redisDB.Close()
 }

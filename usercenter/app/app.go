@@ -6,8 +6,8 @@ import (
 
 	"github.com/codelieche/microservice/common"
 
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/middleware/logger"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/middleware/logger"
 )
 
 func init() {
@@ -21,10 +21,11 @@ func newApp() *iris.Application {
 	appConfigure(app)
 
 	// 设置auth
-	appAddBasictAuth(app)
+	//appAddBasictAuth(app)
 
 	// 使用中间件，添加logger
 	app.Use(logger.New())
+	useSessionMiddleware(app)
 
 	// 处理错误页面
 	handleAppOnError(app)

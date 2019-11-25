@@ -1,15 +1,27 @@
 package app
 
 import (
+	"time"
+
 	"github.com/codelieche/microservice/datasources"
 	"github.com/codelieche/microservice/repositories"
 	"github.com/codelieche/microservice/web/controllers"
 	"github.com/codelieche/microservice/web/services"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
 )
 
 func setAppRoute(app *iris.Application) {
+
+	// 首页
+	mvc.Configure(app.Party("/"), func(app *mvc.Application) {
+		// session
+		// 注册控制器需要的Session和StartTime
+		app.Register(
+			time.Now(),
+		)
+		app.Handle(new(controllers.IndexController))
+	})
 
 	// /api/v1 相关的api
 	apiV1 := app.Party("/api/v1")

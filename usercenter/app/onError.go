@@ -3,7 +3,7 @@ package app
 import (
 	"log"
 
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 )
 
 // 设置app的错误页面

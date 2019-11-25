@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/codelieche/microservice/datamodels"
 	"github.com/codelieche/microservice/web/services"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 )
 
 type PermissionController struct {

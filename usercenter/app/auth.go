@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/codelieche/microservice/common"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/middleware/basicauth"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/middleware/basicauth"
 )
 
 // 设置Basic Auth仅供测试使用
