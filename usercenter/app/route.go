@@ -93,6 +93,19 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.PermissionController))
 	})
 
+	// Ticket相关api
+	mvc.Configure(apiV1.Party("/ticket"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewTicketRepository(db)
+		// 实例化Service
+		pService := services.NewTicketService(repo)
+		// 注册Service
+		app.Register(pService, sess.Start)
+		// 添加Crontroller
+		app.Handle(new(controllers.TicketController))
+	})
+
 	// 添加测试相关api
 	mvc.Configure(app.Party("/demo"), func(app *mvc.Application) {
 
