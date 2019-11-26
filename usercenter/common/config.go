@@ -21,10 +21,11 @@ type Config struct {
 
 // Http Config
 type HttpConfig struct {
-	Host      string            `json:"host",yaml:"host"`
-	Port      int               `json:"port", yaml:"port"`
-	Timeout   int               `json:"timeout", yaml: "timeout"`
-	BasicAuth map[string]string `json:"basicauth", yaml: "basicauth"`
+	Host      string            `json:"host" yaml:"host"`
+	Port      int               `json:"port" yaml:"port"`
+	Timeout   int               `json:"timeout" yaml:"timeout"`
+	BasicAuth map[string]string `json:"basicauth" yaml:"basicauth"`
+	Domains   []string          `json:"domains" yaml:"domains"` // 可以跳转的域名
 }
 
 // MySQL数据库相关配置

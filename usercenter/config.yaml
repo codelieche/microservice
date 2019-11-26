@@ -9,6 +9,10 @@ http:
     user01: password01
     user02: password02
     user03: password03
+  domains:
+    - "api.codelieche.com"
+    - "www.codelieche.com"
+    - "app.codelieche.com"
 # 数据库相关配置
 database:
   host: "${MYSQL_HOST:127.0.0.1}"

@@ -52,6 +52,7 @@ func initSession() {
 		Expires:                     time.Minute * 60,
 		SessionIDGenerator:          nil,
 		DisableSubdomainPersistence: false,
+		//Expires:                     time.Second * 10,
 	})
 
 	// 3. use database

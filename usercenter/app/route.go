@@ -24,6 +24,19 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.IndexController))
 	})
 
+	// User Page
+	mvc.Configure(app.Party("/user"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewUserRepository(db)
+		// 实例化User的Service
+		uService := services.NewUserService(repo)
+		// 注册Service
+		app.Register(uService, sess.Start)
+
+		app.Handle(new(controllers.PageUserControler))
+	})
+
 	// /api/v1 相关的api
 	apiV1 := app.Party("/api/v1")
 	apiV1.Use(checkLogin)
