@@ -26,6 +26,7 @@ func setAppRoute(app *iris.Application) {
 
 	// /api/v1 相关的api
 	apiV1 := app.Party("/api/v1")
+	apiV1.Use(checkLogin)
 
 	// 用户相关api
 	mvc.Configure(apiV1.Party("/user"), func(app *mvc.Application) {

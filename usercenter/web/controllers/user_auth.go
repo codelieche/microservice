@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/codelieche/microservice/web/forms"
 	"github.com/go-playground/validator"
@@ -17,6 +18,21 @@ import (
 func (c *UserController) isLoginIn() bool {
 	userID := c.Session.GetIntDefault("userID", 0)
 	return userID > 0
+}
+
+// Get登录页面
+func (c *UserController) GetLogin() {
+	if c.isLoginIn() {
+		if u, err := c.getCurrentUser(); err != nil {
+
+		} else {
+			msg := fmt.Sprintf("已经登录，用户名是：%s", u.Username)
+			c.Ctx.ViewData("msg", msg)
+		}
+
+	}
+	//c.Ctx.ViewData("msg", "提示消息")
+	c.Ctx.View("user/login.html")
 }
 
 // Post登录用户

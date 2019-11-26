@@ -26,6 +26,8 @@ func newApp() *iris.Application {
 	// 使用中间件，添加logger
 	app.Use(logger.New())
 	useSessionMiddleware(app)
+	//app.Use(checkLogin)
+	//app.Use(checkLogin)
 
 	// 处理错误页面
 	handleAppOnError(app)
@@ -39,6 +41,9 @@ func newApp() *iris.Application {
 
 	// 设置路由：重点
 	setAppRoute(app)
+
+	// 静态文件
+	app.HandleDir("/static", "./web/public")
 
 	return app
 }

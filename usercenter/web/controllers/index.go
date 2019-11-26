@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/kataras/iris/v12/sessions"
@@ -9,6 +10,7 @@ import (
 )
 
 type IndexController struct {
+	Ctx       iris.Context
 	StartTime time.Time
 }
 
@@ -55,4 +57,19 @@ func (c *IndexController) GetPing(ctx iris.Context) {
 			"message": result,
 		})
 
+}
+
+// 用户登录页面
+func (c *IndexController) GetUserLogin() {
+	session := sessions.Get(c.Ctx)
+	userID := session.GetIntDefault("userID", 0)
+	if userID > 0 {
+		msg := fmt.Sprintf("已经登录，用户名id是：%d", userID)
+		c.Ctx.ViewData("msg", msg)
+	} else {
+
+	}
+
+	//c.Ctx.ViewData("msg", "提示消息")
+	c.Ctx.View("user/login.html")
 }
