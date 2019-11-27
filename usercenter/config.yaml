@@ -13,6 +13,10 @@ http:
     - "api.codelieche.com"
     - "www.codelieche.com"
     - "app.codelieche.com"
+    - "localhost"
+    - "localhost:9001"
+    - "127.0.0.1"
+    - "127.0.0.1:9001"
 # 数据库相关配置
 database:
   host: "${MYSQL_HOST:127.0.0.1}"

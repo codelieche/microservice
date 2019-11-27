@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kataras/iris/v12/sessions"
+
 	"github.com/codelieche/microservice/web/forms"
 
 	"github.com/kataras/iris/v12"
@@ -29,13 +31,14 @@ func CheckTicketMiddleware(ctx iris.Context) {
 			log.Println(err.Error())
 		} else {
 			log.Println(sessionID)
+			session := sessions.Get(ctx)
+			session.Set("userID", 100)
+
 			// 设置系统的cookie，然后跳转Url
 			url := ctx.Request().URL
 			urlStr := fmt.Sprintf("%s", url)
 			urlStr = strings.Split(urlStr, "?ticket=")[0]
-
-			log.Println(url)
-
+			log.Println(urlStr)
 			ctx.StatusCode(iris.StatusFound)
 			ctx.Redirect(urlStr)
 		}
@@ -82,6 +85,7 @@ func CheckTicketFromSSOServer(ticket string) (session string, err error) {
 					if result.Session != "" {
 						return result.Session, nil
 					} else {
+						log.Println(result)
 						return "", errors.New("session为空")
 					}
 				}

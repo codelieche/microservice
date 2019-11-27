@@ -12,16 +12,18 @@ type UserService interface {
 	GetByIdOrName(idOrName string) (user *datamodels.User, err error)
 	List(offset int, limit int) (users []*datamodels.User, err error)
 	ChangeUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
+	SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error)
 }
 
 // 实例化User Service
-func NewUserService(repo repositories.UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo repositories.UserRepository, tRepo repositories.TicketRepository) UserService {
+	return &userService{repo: repo, ticketRepo: tRepo}
 }
 
 // user Service
 type userService struct {
-	repo repositories.UserRepository
+	repo       repositories.UserRepository
+	ticketRepo repositories.TicketRepository
 }
 
 func (s *userService) CreateUser(user *datamodels.User) (*datamodels.User, error) {
@@ -42,4 +44,8 @@ func (s *userService) List(offset int, limit int) (users []*datamodels.User, err
 
 func (s *userService) ChangeUserPassword(user *datamodels.User, password string) (*datamodels.User, error) {
 	return s.repo.SetUserPassword(user, password)
+}
+
+func (s *userService) SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error) {
+	return s.ticketRepo.Save(ticket)
 }

@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -55,7 +56,8 @@ func CheckLoginMiddleware(ctx iris.Context) {
 
 			// 也可让其跳转去登录页面
 			ctx.StatusCode(302)
-			ctx.Redirect("/user/login")
+			rediretUrl := fmt.Sprintf("http://localhost:9000/user/login?returnUrl=%s", "http://localhost:9001/")
+			ctx.Redirect(rediretUrl)
 		}
 	}
 }

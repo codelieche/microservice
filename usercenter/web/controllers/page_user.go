@@ -91,6 +91,7 @@ func (c *PageUserControler) generateTicket(returnUrl string) *datamodels.Ticket 
 		Name:        ticketName,
 		Session:     c.Session.ID(),
 		ReturnUrl:   returnUrl,
+		IsActive:    true,
 		TimeExpired: time.Now().Add(time.Minute),
 	}
 
@@ -120,6 +121,8 @@ func (c *PageUserControler) GetLogin() {
 				// 可以跳转:Ticket可以生成一个另外的值【推荐】
 				ticket := c.generateTicket(returnUrl)
 				//log.Println(ticket)
+				// 保存ticket
+				c.Service.SaveTicket(ticket)
 
 				if strings.Contains(returnUrl, "?") {
 					returnUrl = fmt.Sprintf("%s&ticket=%s", returnUrl, ticket.Name)

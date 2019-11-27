@@ -34,8 +34,10 @@ func setAppRoute(app *iris.Application) {
 		// 实例化User的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
+		tRepo := repositories.NewTicketRepository(db)
 		// 实例化User的Service
-		uService := services.NewUserService(repo)
+		uService := services.NewUserService(repo, tRepo)
+
 		// 注册Service
 		app.Register(uService, sess.Start)
 
@@ -52,8 +54,9 @@ func setAppRoute(app *iris.Application) {
 		// 实例化User的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
+		tRepo := repositories.NewTicketRepository(db)
 		// 实例化User的Service
-		uService := services.NewUserService(repo)
+		uService := services.NewUserService(repo, tRepo)
 		// 注册Service
 		app.Register(uService, sess.Start)
 		// 添加Crontroller
@@ -105,9 +108,9 @@ func setAppRoute(app *iris.Application) {
 		db := datasources.GetDb()
 		repo := repositories.NewTicketRepository(db)
 		// 实例化Service
-		pService := services.NewTicketService(repo)
+		tService := services.NewTicketService(repo)
 		// 注册Service
-		app.Register(pService, sess.Start)
+		app.Register(tService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.TicketController))
 	})
