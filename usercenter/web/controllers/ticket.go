@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/codelieche/microservice/datamodels"
 	"github.com/codelieche/microservice/web/services"
 	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
 )
 
 type TicketController struct {
@@ -11,7 +14,7 @@ type TicketController struct {
 	Ctx     iris.Context
 }
 
-//func (c *TicketController) GetBy(id int64) (ticket *datamodels.Ticket, success bool) {
+//func (c *TicketController) GetBy(id int) (ticket *datamodels.Ticket, success bool) {
 //	if ticket, err := c.Service.GetById(id); err != nil {
 //		return nil, false
 //	} else {
@@ -54,5 +57,37 @@ func (c *TicketController) GetListBy(page int) (tickets []*datamodels.Ticket, su
 		return nil, false
 	} else {
 		return tickets, true
+	}
+}
+
+// 验证ticket是否ok
+func (c *TicketController) GetValidateBy(name string) mvc.Result {
+	if ticket, err := c.Service.GetByName(name); err != nil {
+		return mvc.Response{
+			Err: err,
+		}
+	} else {
+		// 判断ticket是否校验过了
+		if ticket.IsActive {
+			// 设置为IsActive为False
+			updateFields := map[string]interface{}{}
+			updateFields["IsActive"] = false
+			// 校验要跳转的url是否是这个
+			// 保存ticket
+			if ticket, err := c.Service.UpdateByID(int64(ticket.ID), updateFields); err != nil {
+				return mvc.Response{
+					Err: err,
+				}
+			} else {
+				return mvc.Response{
+					Object: ticket,
+				}
+			}
+		} else {
+			// 已经核验过了，不可再使用了
+			return mvc.Response{
+				Err: errors.New("当前Ticket已经被使用过了"),
+			}
+		}
 	}
 }

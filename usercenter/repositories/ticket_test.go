@@ -20,10 +20,11 @@ func generateTicket(sessionID string, returnUrl string) *datamodels.Ticket {
 
 	Result := Md5Inst.Sum([]byte(""))
 	ticketName := fmt.Sprintf("%x", Result)
+	var isActive = true
 	ticket := datamodels.Ticket{
 		Name:        ticketName,
 		Session:     sessionID,
-		IsActive:    true,
+		IsActive:    isActive,
 		ReturnUrl:   returnUrl,
 		TimeExpired: time.Now().Add(time.Minute),
 	}
@@ -77,7 +78,20 @@ func TestTicketRepository_List(t *testing.T) {
 				haveNext = false
 			}
 			// 输出分组
+			updateFields := map[string]interface{}{}
 			for _, ticket := range tickets {
+				if ticket.ID == 12 {
+					updateFields["id"] = 19
+					updateFields["Name"] = "update_ticket_namedd"
+					updateFields["IsActive"] = true
+					updateFields["Times"] = 110
+					if ti, err := r.Update(ticket, updateFields); err != nil {
+						t.Error(err.Error())
+					} else {
+						log.Println(ti.ID, ti.Name)
+					}
+					//r.UpdateByID(12, updateFields)
+				}
 				log.Println(ticket.ID, ticket.Name, ticket.TimeExpired)
 			}
 		}

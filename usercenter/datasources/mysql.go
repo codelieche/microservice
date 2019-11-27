@@ -51,6 +51,10 @@ func initDb() {
 	db.AutoMigrate(&datamodels.Role{})
 	db.AutoMigrate(&datamodels.Application{})
 	db.AutoMigrate(&datamodels.Permission{})
+	db.AutoMigrate(&datamodels.Ticket{})
+
+	//	4. 是否显示Model的SQL
+	db.LogMode(config.Debug)
 }
 
 func GetDb() *gorm.DB {

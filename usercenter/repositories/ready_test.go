@@ -9,4 +9,5 @@ func TestReadyData(t *testing.T) {
 	t.Run("create_roles", TestRoleRepository_Save)
 	t.Run("create_apps", TestApplicationRepository_Save)
 	t.Run("create_permissions", TestPermissionRepository_Save)
+	t.Run("create_ticket", TestTicketRepository_Save)
 }

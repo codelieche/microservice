@@ -7,6 +7,9 @@ import (
 
 // Ticket Service Interface
 type TicketService interface {
+	Save(ticket *datamodels.Ticket) (*datamodels.Ticket, error)
+	Update(ticket *datamodels.Ticket, fields map[string]interface{}) (*datamodels.Ticket, error)
+	UpdateByID(id int64, fields map[string]interface{}) (*datamodels.Ticket, error)
 	GetById(id int64) (ticket *datamodels.Ticket, err error)
 	GetByName(idOrName string) (ticket *datamodels.Ticket, err error)
 	GetByIdOrName(idOrName string) (ticket *datamodels.Ticket, err error)
@@ -21,6 +24,18 @@ func NewTicketService(repo repositories.TicketRepository) TicketService {
 // ticket Service
 type ticketService struct {
 	repo repositories.TicketRepository
+}
+
+func (s *ticketService) UpdateByID(id int64, fields map[string]interface{}) (*datamodels.Ticket, error) {
+	return s.repo.UpdateByID(id, fields)
+}
+
+func (s *ticketService) Save(ticket *datamodels.Ticket) (*datamodels.Ticket, error) {
+	return s.repo.Save(ticket)
+}
+
+func (s *ticketService) Update(ticket *datamodels.Ticket, fields map[string]interface{}) (*datamodels.Ticket, error) {
+	return s.repo.Update(ticket, fields)
 }
 
 func (s *ticketService) GetById(id int64) (ticket *datamodels.Ticket, err error) {
