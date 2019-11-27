@@ -3,6 +3,8 @@ package app
 import (
 	"time"
 
+	"github.com/codelieche/microservice/web/middlewares"
+
 	"github.com/codelieche/microservice/datasources"
 	"github.com/codelieche/microservice/repositories"
 	"github.com/codelieche/microservice/web/controllers"
@@ -25,7 +27,10 @@ func setAppRoute(app *iris.Application) {
 	})
 
 	// User Page
-	mvc.Configure(app.Party("/user"), func(app *mvc.Application) {
+	pageUser := app.Party("/user")
+	// /user开头的页面都需要采用CheckLoginMiddleware中间件【如果未登录会跳转到登录页面】
+	pageUser.Use(middlewares.CheckLoginMiddleware)
+	mvc.Configure(pageUser, func(app *mvc.Application) {
 		// 实例化User的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
@@ -39,7 +44,8 @@ func setAppRoute(app *iris.Application) {
 
 	// /api/v1 相关的api
 	apiV1 := app.Party("/api/v1")
-	apiV1.Use(checkLogin)
+	// /api/v1开头的url都需要使用IsAuthenticatedMiddleware的中间件
+	apiV1.Use(middlewares.IsAuthenticatedMiddleware)
 
 	// 用户相关api
 	mvc.Configure(apiV1.Party("/user"), func(app *mvc.Application) {
@@ -108,7 +114,6 @@ func setAppRoute(app *iris.Application) {
 
 	// 添加测试相关api
 	mvc.Configure(app.Party("/demo"), func(app *mvc.Application) {
-
 		// 注册
 		app.Register(sess)
 

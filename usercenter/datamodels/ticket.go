@@ -2,12 +2,14 @@ package datamodels
 
 import (
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Ticket struct {
-	gorm.Model
+	ID        uint `gorm:"type:bigint(20) unsigned auto_increment;not null;primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+	//gorm.Model
 	Name        string    `gorm:"type:varchar(100);UNIQUE_INDEX" json:"name"` // Ticket的名字: hash(session id)
 	Session     string    `gorm:"size:100" json:"session"`                    // SessionID
 	ReturnUrl   string    `gorm:"size:512" json:"return_url" `                // 跳转的URL

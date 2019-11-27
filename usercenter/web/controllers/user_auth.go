@@ -140,7 +140,7 @@ func (c *UserController) PostLogin() mvc.Result {
 			c.Session.Set("userID", user.ID)
 
 			// 判断是否需要跳转
-			if returnUrl != "" {
+			if returnUrl != "" && c.checkReturnUrl(returnUrl) {
 				//log.Println(returnUrl)
 
 				//c.Ctx.StatusCode(302)

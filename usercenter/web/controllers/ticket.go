@@ -3,6 +3,8 @@ package controllers
 import (
 	"errors"
 
+	"github.com/codelieche/microservice/web/forms"
+
 	"github.com/codelieche/microservice/datamodels"
 	"github.com/codelieche/microservice/web/services"
 	"github.com/kataras/iris/v12"
@@ -64,7 +66,13 @@ func (c *TicketController) GetListBy(page int) (tickets []*datamodels.Ticket, su
 func (c *TicketController) GetValidateBy(name string) mvc.Result {
 	if ticket, err := c.Service.GetByName(name); err != nil {
 		return mvc.Response{
-			Err: err,
+			Object: forms.TicketValidateResponse{
+				Errcode:   4001,
+				Errmsg:    err.Error(),
+				ReturnUrl: "",
+				Name:      name,
+				Session:   "",
+			},
 		}
 	} else {
 		// 判断ticket是否校验过了
@@ -76,17 +84,36 @@ func (c *TicketController) GetValidateBy(name string) mvc.Result {
 			// 保存ticket
 			if ticket, err := c.Service.UpdateByID(int64(ticket.ID), updateFields); err != nil {
 				return mvc.Response{
-					Err: err,
+					Object: forms.TicketValidateResponse{
+						Errcode:   4001,
+						Errmsg:    err.Error(),
+						ReturnUrl: "",
+						Name:      name,
+						Session:   "",
+					},
 				}
 			} else {
 				return mvc.Response{
-					Object: ticket,
+					Object: forms.TicketValidateResponse{
+						Errcode:   0,
+						Errmsg:    "",
+						ReturnUrl: ticket.ReturnUrl,
+						Name:      ticket.Name,
+						Session:   ticket.Session,
+					},
 				}
 			}
 		} else {
 			// 已经核验过了，不可再使用了
+			err := errors.New("当前Ticket已经被使用过了")
 			return mvc.Response{
-				Err: errors.New("当前Ticket已经被使用过了"),
+				Object: forms.TicketValidateResponse{
+					Errcode:   4001,
+					Errmsg:    err.Error(),
+					ReturnUrl: "",
+					Name:      name,
+					Session:   "",
+				},
 			}
 		}
 	}

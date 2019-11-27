@@ -62,7 +62,7 @@ func (c *PageUserControler) checkReturnUrl(returnUrl string) bool {
 		host := u.Host
 		config := common.GetConfig()
 		for _, domain := range config.Http.Domains {
-			log.Println(domain)
+			//log.Println(domain)
 			if domain != "" {
 				if strings.HasSuffix(host, domain) {
 					return true
@@ -212,7 +212,7 @@ func (c *PageUserControler) PostLogin() mvc.Result {
 			c.Session.Set("userID", user.ID)
 
 			// 判断是否需要跳转
-			if returnUrl != "" {
+			if returnUrl != "" && c.checkReturnUrl(returnUrl) {
 				//log.Println(returnUrl)
 
 				//c.Ctx.StatusCode(302)
@@ -235,4 +235,8 @@ ERR:
 	return mvc.Response{
 		Err: err,
 	}
+}
+
+func (c *PageUserControler) GetInfo() string {
+	return "This Is User Info Page"
 }
