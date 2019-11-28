@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"errors"
 	"log"
+	"strings"
 
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
@@ -9,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	// 保存User
+	// 保存User: 不会修改username和password
 	Save(user *datamodels.User) (*datamodels.User, error)
 	// 获取User的列表
 	List(offset int, limit int) ([]*datamodels.User, error)
@@ -27,12 +29,14 @@ type UserRepository interface {
 	GetUserGroups(user *datamodels.User) (groups []*datamodels.Group, err error)
 	// 获取用户的角色列表
 	GetUserRoles(user *datamodels.User) (roles []*datamodels.Role, err error)
+	// 用户更新操作
+	UpdateByID(id int64, fields map[string]interface{}) (*datamodels.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
 		db:          db,
-		infoFields:  []string{"id", "username", "email", "mobile"},
+		infoFields:  []string{"id", "username", "email", "mobile", "is_active"},
 		groupFields: []string{"id", "name"},
 		roleFields:  []string{"id", "name"},
 	}
@@ -60,18 +64,12 @@ func (r *userRepository) CheckUserPassword(user *datamodels.User, password strin
 
 // 保存User
 func (r *userRepository) Save(user *datamodels.User) (*datamodels.User, error) {
-	// 判断密码
-	if user.Password != "" && len(user.Password) < 40 {
-		// 密码不是加密了的，我们给它加密一下
-		if err := user.SetPassword(user.Password); err != nil {
-			log.Println(err.Error())
-			return nil, err
-		}
-	}
-
 	// 保存账号
 	if user.ID > 0 {
 		// 是更新操作
+		user.Password = ""
+		user.Username = ""
+		// 设置为空，就不会更新这字段
 		if err := r.db.Model(&datamodels.User{}).Update(user).Error; err != nil {
 			return nil, err
 		} else {
@@ -79,6 +77,15 @@ func (r *userRepository) Save(user *datamodels.User) (*datamodels.User, error) {
 		}
 	} else {
 		// 是创建操作
+		// 判断密码
+		if user.Password != "" && len(user.Password) < 40 {
+			// 密码不是加密了的，我们给它加密一下
+			if err := user.SetPassword(user.Password); err != nil {
+				log.Println(err.Error())
+				return nil, err
+			}
+		}
+
 		if err := r.db.Create(user).Error; err != nil {
 			return nil, err
 		} else {
@@ -163,5 +170,45 @@ func (r *userRepository) GetUserRoles(user *datamodels.User) (roles []*datamodel
 		return nil, query.Error
 	} else {
 		return roles, nil
+	}
+}
+
+// 更新
+func (r *userRepository) UpdateByID(id int64, fields map[string]interface{}) (user *datamodels.User, err error) {
+	// 判断ID
+	if id <= 0 {
+		err = errors.New("传入ID为0,会更新全部数据")
+		return nil, err
+	}
+	// 因为指定了ID了，所以这里可不判断这个ID
+	// 丢弃ID/id/Id/iD
+	//idKeys := []string{"ID", "id", "Id", "iD"}
+	//for _, k := range idKeys {
+	//	if _, exist := fields[k]; exist {
+	//		delete(fields, k)
+	//	}
+	//}
+
+	// 密码是不更新的: id也是不用传的
+	for key := range fields {
+		if strings.ToLower(key) == "password" {
+			delete(fields, key)
+		}
+		if strings.ToLower(key) == "username" {
+			delete(fields, key)
+		}
+	}
+
+	// 更新操作
+	if err = r.db.Model(&datamodels.User{}).Where("id = ?", id).Limit(1).Update(fields).Error; err != nil {
+		return nil, err
+	} else {
+		return r.Get(id)
+		//user = &datamodels.User{}
+		//if err = r.db.First(user, "id = ?", id).Error; err != nil {
+		//	return nil, err
+		//} else {
+		//	return user, nil
+		//}
 	}
 }

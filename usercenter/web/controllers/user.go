@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 
 	"github.com/codelieche/microservice/usercenter/web/forms"
 	"github.com/go-playground/validator"
@@ -66,6 +67,11 @@ func (c *UserController) GetListBy(page int, ctx iris.Context) (users []*datamod
 
 // 注册用户
 func (c *UserController) PostCreate() (user *datamodels.User, err error) {
+	// 判断session是否登录
+	if c.Session.GetIntDefault("userID", 0) != 0 {
+		err = errors.New("当前登录了用户，不可创建用户")
+		return nil, err
+	}
 	//	定义变量
 	var (
 		username   = c.Ctx.FormValue("username")
@@ -109,6 +115,7 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 		Password:    password,
 		Mobile:      mobile,
 		Email:       email,
+		IsActive:    true,
 		Groups:      nil,
 		Roles:       nil,
 		Permissions: nil,
@@ -120,5 +127,18 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 	} else {
 		// 创建用户成功
 		return user, nil
+	}
+}
+
+func (c *UserController) DeleteBy(idOrName string) {
+	if success, err := c.Service.DeleteUserByIdOrName(idOrName); err != nil {
+		log.Println(err)
+		c.Ctx.StatusCode(iris.StatusBadRequest)
+	} else {
+		if success {
+			c.Ctx.StatusCode(iris.StatusNoContent)
+		} else {
+			c.Ctx.StatusCode(iris.StatusBadRequest)
+		}
 	}
 }

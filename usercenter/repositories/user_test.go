@@ -28,6 +28,7 @@ func TestUserRepository_Save(t *testing.T) {
 		user := &datamodels.User{
 			Username: name,
 			Password: password,
+			IsActive: true,
 		}
 
 		if u, err := r.Save(user); err != nil {
@@ -156,6 +157,24 @@ func TestUserRepository_Save2(t *testing.T) {
 			user.Groups = groups
 			r.Save(user)
 		}
+	}
+
+}
+
+func TestUserRepository_Save3(t *testing.T) {
+	// 设置用户的分组
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init user repository
+	r := NewUserRepository(db)
+
+	if user, err := r.Get(1); err != nil {
+		t.Error(err)
+	} else {
+		user.Username = "t123"
+		user.Password = "abcdefgdd"
+		r.Save(user)
 	}
 
 }

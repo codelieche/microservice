@@ -131,7 +131,9 @@ func (c *UserController) PostLogin() mvc.Result {
 	}
 
 	// 判断用户密码是否正确
-	if success, err = user.CheckPassword(password); err != nil {
+	//if success, err = user.CheckPassword(password); err != nil {
+
+	if success, err = c.Service.CheckUserPassword(user, password); err != nil {
 		err = errors.New("输入的密码不正确")
 		goto ERR
 	} else {

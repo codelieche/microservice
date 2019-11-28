@@ -15,6 +15,7 @@ type User struct {
 	Password    string        `gorm:"type:varchar(256);NULL" json:"password"`                  // 用户密码
 	Mobile      string        `gorm:"size:100" json:"mobile"`                                  // 用户手机号
 	Email       string        `gorm:"size:100" json:"email"`                                   // 用户邮箱
+	IsActive    bool          `gorm:"type:boolean" json:"is_active"`                           // 是否启用
 	Groups      []*Group      `gorm:"many2many:group_users" json:"groups,omitempty"`           // 用户分组
 	Roles       []*Role       `gorm:"many2many:role_users" json:"roles,omitempty"`             // 用户角色
 	Permissions []*Permission `gorm:"many2many:user_permissions" json:"permissions,omitempty"` // 用户权限

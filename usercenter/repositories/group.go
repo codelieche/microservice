@@ -25,7 +25,7 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 	return &groupRepository{
 		db:               db,
 		infoFields:       []string{"id", "created_at", "updated_at", "name"},
-		userFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile"},
+		userFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile", "is_active"},
 		permissionFields: []string{"id", "created_at", "updated_at", "app_id", "code"},
 	}
 }

@@ -43,6 +43,10 @@ func (c *PageUserControler) getCurrentUser() (user *datamodels.User, err error) 
 	userID := c.Session.GetIntDefault("userID", 0)
 	if userID > 0 {
 		if user, err = c.Service.GetById(int64(userID)); err != nil {
+			// 如果用户是不存在了，那么应该注销当前用户的登录：销毁session即可
+			if err == common.NotFountError {
+				c.Session.Destroy()
+			}
 			return nil, err
 		} else {
 			return user, nil

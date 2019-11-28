@@ -1,6 +1,12 @@
 package services
 
 import (
+	"errors"
+	"log"
+	"time"
+
+	"github.com/codelieche/microservice/usercenter/common"
+
 	"github.com/codelieche/microservice/usercenter/datamodels"
 	"github.com/codelieche/microservice/usercenter/repositories"
 )
@@ -15,6 +21,7 @@ type UserService interface {
 	// 检查用户的密码
 	CheckUserPassword(user *datamodels.User, password string) (bool, error)
 	SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error)
+	DeleteUserByIdOrName(idOrName string) (success bool, err error)
 }
 
 // 实例化User Service
@@ -26,6 +33,37 @@ func NewUserService(repo repositories.UserRepository, tRepo repositories.TicketR
 type userService struct {
 	repo       repositories.UserRepository
 	ticketRepo repositories.TicketRepository
+}
+
+func (s *userService) DeleteUserByIdOrName(idOrName string) (success bool, err error) {
+	// 1. 先获取用户
+	if user, err := s.GetByIdOrName(idOrName); err != nil {
+		//log.Println(err)
+		return false, err
+	} else {
+		// 2. 禁用用户
+		isActive := user.IsActive
+		updateFields := map[string]interface{}{
+			"IsActive":  false,
+			"DeletedAt": time.Now(),
+		}
+		if user, err = s.repo.UpdateByID(int64(user.ID), updateFields); err != nil {
+			log.Println(err)
+			if err == common.NotFountError {
+				return true, nil
+			} else {
+				return false, err
+			}
+		} else {
+			log.Println(user)
+			if isActive && !user.IsActive {
+				return true, nil
+			} else {
+				return false, errors.New("删除失败")
+
+			}
+		}
+	}
 }
 
 func (s *userService) CreateUser(user *datamodels.User) (*datamodels.User, error) {
