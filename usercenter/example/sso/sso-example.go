@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/codelieche/microservice/web/middlewares"
+	"github.com/codelieche/microservice/usercenter/web/middlewares"
 
 	"github.com/kataras/iris/v12/sessions"
 

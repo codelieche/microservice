@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/codelieche/microservice/datamodels"
+	"github.com/codelieche/microservice/usercenter/datamodels"
 
-	"github.com/codelieche/microservice/common"
+	"github.com/codelieche/microservice/usercenter/common"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )

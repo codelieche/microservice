@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codelieche/microservice/common"
+	"github.com/codelieche/microservice/usercenter/common"
 
-	"github.com/codelieche/microservice/datamodels"
-	"github.com/codelieche/microservice/web/forms"
+	"github.com/codelieche/microservice/usercenter/datamodels"
+	"github.com/codelieche/microservice/usercenter/web/forms"
 	"github.com/go-playground/validator"
 	"github.com/kataras/iris/v12/mvc"
 
-	"github.com/codelieche/microservice/web/services"
+	"github.com/codelieche/microservice/usercenter/web/services"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
 )

@@ -5,7 +5,7 @@ import (
 
 	"github.com/kataras/iris/v12/sessions"
 
-	"github.com/codelieche/microservice/common"
+	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/basicauth"
 )

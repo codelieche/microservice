@@ -3,7 +3,7 @@ package app
 import (
 	"log"
 
-	"github.com/codelieche/microservice/datasources"
+	"github.com/codelieche/microservice/usercenter/datasources"
 )
 
 // 处理control/cmd + c关闭的时候

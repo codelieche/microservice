@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/codelieche/microservice/app"
+	"github.com/codelieche/microservice/usercenter/app"
 )
 
 func main() {

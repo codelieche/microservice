@@ -3,8 +3,8 @@ package repositories
 import (
 	"log"
 
-	"github.com/codelieche/microservice/common"
-	"github.com/codelieche/microservice/datamodels"
+	"github.com/codelieche/microservice/usercenter/common"
+	"github.com/codelieche/microservice/usercenter/datamodels"
 	"github.com/jinzhu/gorm"
 )
 

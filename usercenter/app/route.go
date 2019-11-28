@@ -3,12 +3,12 @@ package app
 import (
 	"time"
 
-	"github.com/codelieche/microservice/web/middlewares"
+	"github.com/codelieche/microservice/usercenter/web/middlewares"
 
-	"github.com/codelieche/microservice/datasources"
-	"github.com/codelieche/microservice/repositories"
-	"github.com/codelieche/microservice/web/controllers"
-	"github.com/codelieche/microservice/web/services"
+	"github.com/codelieche/microservice/usercenter/datasources"
+	"github.com/codelieche/microservice/usercenter/repositories"
+	"github.com/codelieche/microservice/usercenter/web/controllers"
+	"github.com/codelieche/microservice/usercenter/web/services"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )

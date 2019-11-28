@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/codelieche/microservice/datamodels"
-	"github.com/codelieche/microservice/web/services"
+	"github.com/codelieche/microservice/usercenter/datamodels"
+	"github.com/codelieche/microservice/usercenter/web/services"
 	"github.com/kataras/iris/v12"
 )
 

@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/codelieche/microservice/datamodels"
-	"github.com/codelieche/microservice/repositories"
+	"github.com/codelieche/microservice/usercenter/datamodels"
+	"github.com/codelieche/microservice/usercenter/repositories"
 )
 
 // Role Service Interface

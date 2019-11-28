@@ -5,9 +5,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/codelieche/microservice/datamodels"
+	"github.com/codelieche/microservice/usercenter/datamodels"
 
-	"github.com/codelieche/microservice/datasources"
+	"github.com/codelieche/microservice/usercenter/datasources"
 )
 
 func TestPermissionRepository_Save(t *testing.T) {
