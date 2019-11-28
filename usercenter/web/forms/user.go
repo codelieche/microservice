@@ -22,3 +22,11 @@ type UserChangePasswrodForm struct {
 	Password   string `json:"password" validate:"required,min=8,max=40"`       // 必填，长度为：8 <= length <= 40
 	Repassword string `json:"repassword" validate:"required,eqfield=Password"` // 必填，且需要和Password字段相同
 }
+
+// 用户基本信息表单
+type UserDetailForm struct {
+	ID       int    `json:"id"`       // 用户ID
+	Username string `json:"username"` // 用户名称
+	Mobile   string `json:"mobile"`   // 用户手机号
+	Email    string `json:"email"`    // 用户邮箱
+}

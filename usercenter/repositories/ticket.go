@@ -133,7 +133,9 @@ func (r *ticketRepository) Get(id int64) (ticket *datamodels.Ticket, err error) 
 
 func (r *ticketRepository) GetByName(name string) (ticket *datamodels.Ticket, err error) {
 	ticket = &datamodels.Ticket{}
-	r.db.First(ticket, "name = ?", name)
+	r.db.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, username, email, mobile")
+	}).First(ticket, "name = ?", name)
 	if ticket.ID > 0 {
 		return ticket, nil
 	} else {

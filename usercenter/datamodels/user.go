@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	gorm.Model
+	//gorm.Model
+	BaseFields
 	Username    string        `gorm:"type:varchar(40);NOT NULL;UNIQUE_INDEX" json:"username"`  // 用户名
 	Password    string        `gorm:"type:varchar(256);NULL" json:"password"`                  // 用户密码
 	Mobile      string        `gorm:"size:100" json:"mobile"`                                  // 用户手机号

@@ -137,3 +137,38 @@ func TestUserRepository_GetUserRoles(t *testing.T) {
 		}
 	}
 }
+
+func TestUserRepository_Save2(t *testing.T) {
+	// 设置用户的分组
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init user repository
+	r := NewUserRepository(db)
+	rGroup := NewGroupRepository(db)
+
+	if groups, err := rGroup.List(1, 3); err != nil {
+		t.Error(err)
+	} else {
+		if user, err := r.Get(1); err != nil {
+			t.Error(err)
+		} else {
+			user.Groups = groups
+			r.Save(user)
+		}
+	}
+
+}
+
+func TestUserRepository_CheckUserPassword(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init user repository
+	r := NewUserRepository(db)
+
+	user1 := &datamodels.User{BaseFields: datamodels.BaseFields{ID: 1}}
+
+	log.Println(r.CheckUserPassword(user1, "password21"))
+
+}

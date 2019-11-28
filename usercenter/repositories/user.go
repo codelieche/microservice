@@ -11,8 +11,6 @@ import (
 type UserRepository interface {
 	// 保存User
 	Save(user *datamodels.User) (*datamodels.User, error)
-	// 设置用户密码
-	SetUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
 	// 获取User的列表
 	List(offset int, limit int) ([]*datamodels.User, error)
 	// 获取User信息
@@ -21,6 +19,10 @@ type UserRepository interface {
 	GetByIdOrName(idOrName string) (*datamodels.User, error)
 	// 获取User的用户列表
 	GetUserList(user *datamodels.User, offset int, limit int) ([]*datamodels.User, error)
+	// 设置用户密码
+	SetUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
+	// 检查用户的密码
+	CheckUserPassword(user *datamodels.User, password string) (bool, error)
 	//	获取用户的分组列表
 	GetUserGroups(user *datamodels.User) (groups []*datamodels.Group, err error)
 	// 获取用户的角色列表
@@ -28,11 +30,32 @@ type UserRepository interface {
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db: db}
+	return &userRepository{
+		db:          db,
+		infoFields:  []string{"id", "username", "email", "mobile"},
+		groupFields: []string{"id", "name"},
+		roleFields:  []string{"id", "name"},
+	}
 }
 
+// 用户Repository
+// 查询数据的时候，如果不指定Select，会Select *
 type userRepository struct {
-	db *gorm.DB
+	db          *gorm.DB
+	infoFields  []string // 基本信息字段
+	groupFields []string // 分组字段
+	roleFields  []string // 角色字段
+}
+
+// 检查用户的密码
+func (r *userRepository) CheckUserPassword(user *datamodels.User, password string) (success bool, err error) {
+	r.db.Select("id,username,password").First(user)
+	if user.ID > 0 {
+		// 检查用户的密码
+		return user.CheckPassword(password)
+	} else {
+		return false, common.NotFountError
+	}
 }
 
 // 保存User
@@ -80,7 +103,7 @@ func (r *userRepository) SetUserPassword(user *datamodels.User, password string)
 
 // 获取用户的列表
 func (r *userRepository) List(offset int, limit int) (users []*datamodels.User, err error) {
-	query := r.db.Model(&datamodels.User{}).Offset(offset).Limit(limit).Find(&users)
+	query := r.db.Model(&datamodels.User{}).Select(r.infoFields).Offset(offset).Limit(limit).Find(&users)
 	if query.Error != nil {
 		return nil, query.Error
 	} else {
@@ -92,7 +115,7 @@ func (r *userRepository) List(offset int, limit int) (users []*datamodels.User, 
 func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 
 	user = &datamodels.User{}
-	r.db.First(user, "id = ?", id)
+	r.db.Select(r.infoFields).First(user, "id = ?", id)
 	if user.ID > 0 {
 		return user, nil
 	} else {
@@ -104,7 +127,7 @@ func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, err error) {
 
 	user = &datamodels.User{}
-	r.db.First(user, "id = ? or username = ?", idOrName, idOrName)
+	r.db.Select(r.infoFields).First(user, "id = ? or username = ?", idOrName, idOrName)
 	if user.ID > 0 {
 		return user, nil
 	} else {
@@ -115,7 +138,7 @@ func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, 
 // 获取User的用户
 func (r *userRepository) GetUserList(
 	user *datamodels.User, offset int, limit int) (users []*datamodels.User, err error) {
-	query := r.db.Model(user).Offset(offset).Limit(limit).Related(&users, "Users")
+	query := r.db.Model(user).Select(r.infoFields).Offset(offset).Limit(limit).Related(&users, "Users")
 	if query.Error != nil {
 		return nil, query.Error
 	} else {
@@ -125,7 +148,7 @@ func (r *userRepository) GetUserList(
 
 // 获取用户的User
 func (r *userRepository) GetUserGroups(user *datamodels.User) (groups []*datamodels.Group, err error) {
-	query := r.db.Model(user).Related(&groups, "Groups")
+	query := r.db.Model(user).Select(r.groupFields).Related(&groups, "Groups")
 	if query.Error != nil {
 		return nil, query.Error
 	} else {
@@ -135,7 +158,7 @@ func (r *userRepository) GetUserGroups(user *datamodels.User) (groups []*datamod
 
 // 获取用户的角色
 func (r *userRepository) GetUserRoles(user *datamodels.User) (roles []*datamodels.Role, err error) {
-	query := r.db.Model(user).Related(&roles, "Roles")
+	query := r.db.Model(user).Select(r.roleFields).Related(&roles, "Roles")
 	if query.Error != nil {
 		return nil, query.Error
 	} else {

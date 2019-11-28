@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -79,7 +80,7 @@ func (c *PageUserControler) checkReturnUrl(returnUrl string) bool {
 	}
 }
 
-func (c *PageUserControler) generateTicket(returnUrl string) *datamodels.Ticket {
+func (c *PageUserControler) generateTicket(returnUrl string, userID uint) *datamodels.Ticket {
 
 	Md5Inst := md5.New()
 
@@ -91,6 +92,7 @@ func (c *PageUserControler) generateTicket(returnUrl string) *datamodels.Ticket 
 		Name:        ticketName,
 		Session:     c.Session.ID(),
 		ReturnUrl:   returnUrl,
+		UserID:      userID,
 		IsActive:    true,
 		TimeExpired: time.Now().Add(time.Minute),
 	}
@@ -106,23 +108,37 @@ func (c *PageUserControler) GetLogin() {
 	userID := c.Session.GetIntDefault("userID", 0)
 	//log.Println(userID)
 
+	userStr := c.Session.GetString("user")
+	//log.Println(u)
+	user2 := datamodels.User{}
+	if err := json.Unmarshal([]byte(userStr), &user2); err != nil {
+		// 从session中解析user出错
+	} else {
+		// 获取user成功
+		//log.Println(user2)
+	}
+
 	if user, err := c.getCurrentUser(); err != nil {
 		// 获取用户失败
 		//log.Println(err)
 
 	} else {
 		// 判断是否需要跳转
-		if user != nil && user.ID > 0 {
+		if user != nil && user.ID > 0 && user.ID == user2.ID {
 			// 获取returnUrl
 			returnUrl := c.Ctx.URLParam("returnUrl")
 			//returnUrl := c.Ctx.URLParamDefault("returnUrl", "http://www.codelieche.com")
 
 			if returnUrl != "" && c.checkReturnUrl(returnUrl) {
 				// 可以跳转:Ticket可以生成一个另外的值【推荐】
-				ticket := c.generateTicket(returnUrl)
+				ticket := c.generateTicket(returnUrl, user.ID)
 				//log.Println(ticket)
 				// 保存ticket
-				c.Service.SaveTicket(ticket)
+				if ticket, err = c.Service.SaveTicket(ticket); err != nil {
+					// 保存ticket出错
+				} else {
+					// 跳转带ticket的页面
+				}
 
 				if strings.Contains(returnUrl, "?") {
 					returnUrl = fmt.Sprintf("%s&ticket=%s", returnUrl, ticket.Name)
@@ -154,6 +170,7 @@ func (c *PageUserControler) GetLogout() {
 	c.Ctx.Redirect("/user/login")
 }
 
+// Post登录用户
 func (c *PageUserControler) PostLogin() mvc.Result {
 	var (
 		username  = c.Ctx.FormValue("username")
@@ -206,13 +223,20 @@ func (c *PageUserControler) PostLogin() mvc.Result {
 	}
 
 	// 判断用户密码是否正确
-	if success, err = user.CheckPassword(password); err != nil {
+	//if success, err = user.CheckPassword(password); err != nil {
+	if success, err = c.Service.CheckUserPassword(user, password); err != nil {
 		err = errors.New("输入的密码不正确")
 		goto ERR
 	} else {
 		if success {
 			// 登录成功
 			c.Session.Set("userID", user.ID)
+			c.Session.Set("username", user.Username)
+			if data, err := json.Marshal(user); err != nil {
+				c.Session.Set("user", "{}")
+			} else {
+				c.Session.Set("user", string(data))
+			}
 
 			// 判断是否需要跳转
 			if returnUrl != "" && c.checkReturnUrl(returnUrl) {
@@ -224,7 +248,19 @@ func (c *PageUserControler) PostLogin() mvc.Result {
 					Path: returnUrl,
 				}
 			} else {
-				c.Ctx.JSON(user)
+				//c.Ctx.JSON(user)
+				// 跳转到登录页面：Get
+				return mvc.Response{
+					Code: iris.StatusFound,
+					Path: "/user/login",
+				}
+				//return mvc.View{
+				//	Name: "user/login.html",
+				//	Data: map[string]interface{}{
+				//		"msg":     fmt.Sprintf("登录成功 用户名：%s", user.Username),
+				//		"isLogin": true,
+				//	},
+				//}
 			}
 		} else {
 			err = errors.New("账号或者密码不正确")
@@ -235,9 +271,25 @@ ERR:
 	//c.Ctx.JSON(iris.Map{
 	//	"error": err.Error(),
 	//})
-	return mvc.Response{
-		Err: err,
+	if err != nil {
+		return mvc.View{
+			Name: "user/login.html",
+			Data: map[string]interface{}{
+				"msg": err.Error(),
+			},
+		}
+	} else {
+		return mvc.View{
+			Name: "user/login.html",
+			Data: map[string]interface{}{
+				"msg": "没有错误",
+			},
+		}
 	}
+
+	//return mvc.Response{
+	//	Err: err,
+	//}
 }
 
 func (c *PageUserControler) GetInfo() string {

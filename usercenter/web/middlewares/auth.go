@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -43,14 +42,20 @@ func IsAuthenticatedMiddleware(ctx iris.Context) {
 // 注意别把登录页面也设置了这个了，否则登录不了【会显示Unauthorized】
 func CheckLoginMiddleware(ctx iris.Context) {
 	session := sessions.Get(ctx)
-	if session.GetIntDefault("userID", 0) > 0 {
+	// 获取session中用户的ID
+	userID := session.GetIntDefault("userID", 0)
+
+	//log.Println(userID)
+	if userID > 0 {
 		ctx.Next()
 	} else {
+		//log.Println("未登录的，需要跳转sso系统")
 		urlPath := ctx.Request().URL.Path
 		if urlPath == "/api/v1/user/auth" || urlPath == "/api/v1/user/login" || urlPath == "/user/login" {
 			ctx.Next()
 		} else {
-			log.Println("账号未登录")
+
+			//log.Println("账号未登录")
 			//ctx.StatusCode(401)
 			//ctx.StatusCode(iris.StatusUnauthorized)
 

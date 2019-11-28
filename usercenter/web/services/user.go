@@ -12,6 +12,8 @@ type UserService interface {
 	GetByIdOrName(idOrName string) (user *datamodels.User, err error)
 	List(offset int, limit int) (users []*datamodels.User, err error)
 	ChangeUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
+	// 检查用户的密码
+	CheckUserPassword(user *datamodels.User, password string) (bool, error)
 	SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error)
 }
 
@@ -44,6 +46,10 @@ func (s *userService) List(offset int, limit int) (users []*datamodels.User, err
 
 func (s *userService) ChangeUserPassword(user *datamodels.User, password string) (*datamodels.User, error) {
 	return s.repo.SetUserPassword(user, password)
+}
+
+func (s *userService) CheckUserPassword(user *datamodels.User, password string) (bool, error) {
+	return s.repo.CheckUserPassword(user, password)
 }
 
 func (s *userService) SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error) {

@@ -24,7 +24,19 @@ func newApp() *iris.Application {
 	//appAddBasictAuth(app)
 
 	// 使用中间件，添加logger
-	app.Use(logger.New())
+	app.Use(logger.New(logger.Config{
+		Status:             true,
+		IP:                 true,
+		Method:             true,
+		Path:               true,
+		Query:              true,
+		Columns:            false,
+		MessageContextKeys: nil,
+		MessageHeaderKeys:  nil,
+		LogFunc:            nil,
+		LogFuncCtx:         nil,
+		Skippers:           nil,
+	}))
 	useSessionMiddleware(app)
 	//app.Use(checkLogin)
 	//app.Use(checkLogin)

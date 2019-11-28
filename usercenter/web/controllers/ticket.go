@@ -75,12 +75,25 @@ func (c *TicketController) GetValidateBy(name string) mvc.Result {
 			},
 		}
 	} else {
+		//log.Println(ticket.User)
 		// 判断ticket是否校验过了
 		if ticket.IsActive {
 			// 设置为IsActive为False
 			updateFields := map[string]interface{}{}
 			updateFields["IsActive"] = false
 			// 校验要跳转的url是否是这个
+
+			// 保存一下User
+			var user *forms.TicketValidateUser
+
+			if ticket.User != nil {
+				user = &forms.TicketValidateUser{
+					ID:       ticket.UserID,
+					Username: ticket.User.Username,
+					Email:    ticket.User.Email,
+					Mobile:   ticket.User.Mobile,
+				}
+			}
 			// 保存ticket
 			if ticket, err := c.Service.UpdateByID(int64(ticket.ID), updateFields); err != nil {
 				return mvc.Response{
@@ -93,15 +106,30 @@ func (c *TicketController) GetValidateBy(name string) mvc.Result {
 					},
 				}
 			} else {
-				return mvc.Response{
-					Object: forms.TicketValidateResponse{
-						Errcode:   0,
-						Errmsg:    "",
-						ReturnUrl: ticket.ReturnUrl,
-						Name:      ticket.Name,
-						Session:   ticket.Session,
-					},
+				if user != nil {
+					return mvc.Response{
+						Object: forms.TicketValidateResponse{
+							Errcode:   0,
+							Errmsg:    "",
+							ReturnUrl: ticket.ReturnUrl,
+							Name:      ticket.Name,
+							Session:   ticket.Session,
+							User:      user,
+						},
+					}
+				} else {
+					err := errors.New("当前Ticket的用户为空")
+					return mvc.Response{
+						Object: forms.TicketValidateResponse{
+							Errcode:   4001,
+							Errmsg:    err.Error(),
+							ReturnUrl: "",
+							Name:      name,
+							Session:   "",
+						},
+					}
 				}
+
 			}
 		} else {
 			// 已经核验过了，不可再使用了

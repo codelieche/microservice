@@ -2,12 +2,11 @@ package datamodels
 
 import (
 	"encoding/json"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Application struct {
-	gorm.Model
+	//gorm.Model
+	BaseFields
 	Name        string          `gorm:"size:100;NOT NULL;INDEX" json:"name"`        // 应用的名称
 	Code        string          `gorm:"size:100;NOT NULL;UNIQUE_INDEX" json:"code"` // 应用的code 唯一值
 	Token       string          `gorm:"size:100" json:"token"`                      // 每个应用给个TOKEN
