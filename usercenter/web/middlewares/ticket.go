@@ -120,7 +120,7 @@ func CheckTicketFromSSOServer(ticket string) (ticketResponse *forms.TicketValida
 		}
 	}
 
-	// 方式二：不设置超时时间还是不ok的
+	// 方式二：不设置超时时间
 	//if resp, err := http.Get(ticketValidateUrl); err != nil {
 	//	log.Println(err)
 	//} else {

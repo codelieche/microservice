@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/kataras/iris/v12/middleware/logger"
+
 	"github.com/kataras/iris/v12/sessions/sessiondb/redis"
 
 	"github.com/codelieche/microservice/usercenter/web/middlewares"
@@ -17,6 +19,8 @@ import (
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	app := iris.New()
+
+	app.Use(logger.New())
 
 	// 1. 连接Redis
 	cfg := redis.Config{

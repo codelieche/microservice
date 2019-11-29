@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/kataras/iris/v12"
+
 	"github.com/codelieche/microservice/usercenter/common"
 
 	"github.com/codelieche/microservice/usercenter/web/forms"
@@ -184,11 +186,39 @@ ERR:
 }
 
 // 判断用户是否登录
-func (c *UserController) GetAuth() string {
-	if c.isLoginIn() {
-		return "logined"
+// 使用sso的系统，会调用这个接口同步sso的登录状态
+// 如果这个接口返回401，那么需要各系统删掉用户的登录状态：
+// 个系统：需要核对用户名，而且还需要核对身份IsActive
+func (c *UserController) GetAuth() mvc.Result {
+	// 获取ctx的用户
+	u := c.Ctx.Values().Get("user")
+	var user datamodels.User
+	if u != nil {
+		user = u.(datamodels.User)
+
+	}
+	//if c.isLoginIn() {
+	//	return "logined"
+	//} else {
+	//	return "no login"
+	//}
+
+	userForm := forms.TicketValidateUser{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Mobile:   user.Mobile,
+		IsActive: user.IsActive,
+	}
+	if user.ID > 0 && user.IsActive {
+		return mvc.Response{
+			Object: userForm,
+		}
 	} else {
-		return "no login"
+		return mvc.Response{
+			Code:   iris.StatusUnauthorized,
+			Object: userForm,
+		}
 	}
 }
 

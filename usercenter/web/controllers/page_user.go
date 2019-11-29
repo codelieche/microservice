@@ -307,7 +307,7 @@ ERR:
 }
 
 func (c *PageUserControler) GetInfo() string {
-	u := c.Ctx.Values().Get("user")
-	log.Printf("从ctx中获取用户：%s\n", u)
+	//u := c.Ctx.Values().Get("user")
+	//log.Printf("从ctx中获取用户：%s\n", u)
 	return "This Is User Info Page"
 }
