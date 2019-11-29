@@ -57,6 +57,7 @@ func main() {
 
 	sess.UseDatabase(redisDB)
 	app.Use(sess.Handler())
+	middlewares.SetSsoServerHost("localhost:9000")
 	app.Use(middlewares.CheckTicketMiddleware, middlewares.CheckLoginMiddleware)
 	//app.Use(middlewares.CheckLoginMiddleware)
 

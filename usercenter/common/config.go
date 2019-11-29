@@ -44,7 +44,8 @@ type MySQLDatabase struct {
 
 // Redis配置
 type RedisDatabase struct {
-	Hosts    []string `json:"hosts" yaml:"hosts"`       // Redis集群地址
+	Host     string   `json:"host" yaml:"host"`         // redis主机，不填会是默认的127.0.0.1：6739
+	Clusters []string `json:"clusters" yaml:"clusters"` // Redis集群地址
 	Password string   `json:"password" yaml:"password"` // redis的密码
 	DB       int      `json:"db" yaml:db`               // 哪个库
 }
@@ -132,7 +133,8 @@ func ParseConfig() (err error) {
 				Database: "usercenter",
 			},
 			Redis: &RedisDatabase{
-				Hosts:    []string{"127.0.0.1:6379"},
+				Host:     "127.0.0.1:6379",
+				Clusters: []string{"127.0.0.1:6379"},
 				Password: "",
 				DB:       0,
 			},

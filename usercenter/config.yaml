@@ -25,7 +25,8 @@ database:
     password: "${MYSQL_PASSWORD}"
     database: "${MYSQL_DB_NAME:usercenter}"
   redis:
-    hosts:
+    host: "127.0.0.1:6379"
+    clusters:
        - "127.0.0.1:6379"
     password: ""
     db: 0

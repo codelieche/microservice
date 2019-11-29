@@ -18,6 +18,12 @@ import (
 	"github.com/kataras/iris/v12/sessions"
 )
 
+var ssoServerHost string = "sso.codelieche.com"
+
+func SetSsoServerHost(host string) {
+	ssoServerHost = host
+}
+
 // 给ctx设置user
 func CtxSetUserMiddleware(ctx iris.Context) {
 	session := sessions.Get(ctx)
@@ -106,9 +112,9 @@ func CheckLoginMiddleware(ctx iris.Context) {
 	var needReturnUrl bool
 	if userID > 0 {
 		// 调用sso server的：/api/v1/user/auth接口
-		// 判断是否需要调整登录
-		if ctx.Host() != "localhost:9000" {
-
+		// 判断是否需要验证用户在sso server是否登录:
+		if ctx.Host() != ssoServerHost {
+			// 当前中间件请求的服务host不是sso server的host
 			go checkSessionIsOkRsync(session, userID)
 			ctx.Next()
 
@@ -159,7 +165,7 @@ func CheckLoginMiddleware(ctx iris.Context) {
 
 			// 也可让其跳转去登录页面
 			ctx.StatusCode(302)
-			rediretUrl := fmt.Sprintf("http://localhost:9000/user/login?returnUrl=%s", url)
+			rediretUrl := fmt.Sprintf("http://%s/user/login?returnUrl=%s", ssoServerHost, url)
 			ctx.Redirect(rediretUrl)
 		}
 	}
@@ -170,7 +176,7 @@ func CheckSessionIsOK(ssoSessionID string, userID int) bool {
 	// 后续应该用rpc检查
 
 	// 发起http请求
-	ssoServerHost := "localhost:9000"
+	//ssoServerHost := "localhost:9000"
 	userAuthUrl := fmt.Sprintf("http://%s/api/v1/user/auth", ssoServerHost)
 
 	// 方式一：

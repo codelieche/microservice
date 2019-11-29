@@ -21,8 +21,8 @@ func initSession() {
 	config := common.GetConfig()
 	cfg := redis.Config{
 		Network:   "tcp",
-		Addr:      "",
-		Clusters:  config.Database.Redis.Hosts,
+		Addr:      config.Database.Redis.Host,
+		Clusters:  config.Database.Redis.Clusters,
 		Password:  "",
 		Database:  strconv.Itoa(config.Database.Redis.DB),
 		MaxActive: 10,
@@ -32,6 +32,7 @@ func initSession() {
 		Driver:    nil,
 	}
 	redisDB = redis.New(cfg)
+	//log.Println(redisDB)
 	// 检查redis是否连接ok
 
 	defer func() {
