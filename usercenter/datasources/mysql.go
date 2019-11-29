@@ -32,8 +32,8 @@ func initDb() {
 	//	2. 连接数据库
 	// 2-1: 获取mysqlUri
 	mysqlUri = fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.Database.User, config.Database.Password,
-		config.Database.Host, config.Database.Port, config.Database.Database)
+		config.Database.MySQL.User, config.Database.MySQL.Password,
+		config.Database.MySQL.Host, config.Database.MySQL.Port, config.Database.MySQL.Database)
 	//log.Println(mysqlUri)
 	//	2-2: 连接数据库
 	db, err = gorm.Open("mysql", mysqlUri)

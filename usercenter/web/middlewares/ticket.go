@@ -50,6 +50,10 @@ func CheckTicketMiddleware(ctx iris.Context) {
 				Value:   userID,
 				Expires: time.Now().Add(time.Hour),
 			})
+
+			// 把user设置到context中
+			//ctx.Values().Set("user", result.User)
+
 			//ctx.SetCookie(&http.Cookie{
 			//	Name:    "ssoSessionID",
 			//	Value:   result.Session,

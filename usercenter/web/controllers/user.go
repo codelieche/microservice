@@ -131,6 +131,7 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 }
 
 func (c *UserController) DeleteBy(idOrName string) {
+	// 删掉用户的session
 	if success, err := c.Service.DeleteUserByIdOrName(idOrName); err != nil {
 		log.Println(err)
 		c.Ctx.StatusCode(iris.StatusBadRequest)

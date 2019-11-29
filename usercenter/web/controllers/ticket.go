@@ -92,6 +92,7 @@ func (c *TicketController) GetValidateBy(name string) mvc.Result {
 					Username: ticket.User.Username,
 					Email:    ticket.User.Email,
 					Mobile:   ticket.User.Mobile,
+					IsActive: ticket.User.IsActive,
 				}
 			}
 			// 保存ticket
@@ -107,16 +108,31 @@ func (c *TicketController) GetValidateBy(name string) mvc.Result {
 				}
 			} else {
 				if user != nil {
-					return mvc.Response{
-						Object: forms.TicketValidateResponse{
-							Errcode:   0,
-							Errmsg:    "",
-							ReturnUrl: ticket.ReturnUrl,
-							Name:      ticket.Name,
-							Session:   ticket.Session,
-							User:      user,
-						},
+					if user.IsActive {
+						return mvc.Response{
+							Object: forms.TicketValidateResponse{
+								Errcode:   0,
+								Errmsg:    "",
+								ReturnUrl: ticket.ReturnUrl,
+								Name:      ticket.Name,
+								Session:   ticket.Session,
+								User:      user,
+							},
+						}
+					} else {
+						err := errors.New("当前用户已经被禁用了")
+						return mvc.Response{
+							Object: forms.TicketValidateResponse{
+								Errcode:   40001,
+								Errmsg:    err.Error(),
+								ReturnUrl: ticket.ReturnUrl,
+								Name:      ticket.Name,
+								Session:   ticket.Session,
+								User:      user,
+							},
+						}
 					}
+
 				} else {
 					err := errors.New("当前Ticket的用户为空")
 					return mvc.Response{

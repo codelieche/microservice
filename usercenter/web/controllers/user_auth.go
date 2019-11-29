@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -33,6 +34,10 @@ func (c *UserController) checkReturnUrl(returnUrl string) bool {
 	} else {
 		// 判断url的host
 		host := u.Host
+		// 如果有端口号，去掉端口号
+		if strings.Contains(host, ":") {
+			host = strings.Split(host, ":")[0]
+		}
 		config := common.GetConfig()
 		for _, domain := range config.Http.Domains {
 			log.Println(domain)
@@ -130,6 +135,11 @@ func (c *UserController) PostLogin() mvc.Result {
 		goto ERR
 	}
 
+	if !user.IsActive {
+		err = errors.New("用户已被禁用")
+		goto ERR
+	}
+
 	// 判断用户密码是否正确
 	//if success, err = user.CheckPassword(password); err != nil {
 
@@ -140,6 +150,12 @@ func (c *UserController) PostLogin() mvc.Result {
 		if success {
 			// 登录成功
 			c.Session.Set("userID", user.ID)
+			c.Session.Set("username", user.Username)
+			if data, err := json.Marshal(user); err != nil {
+				c.Session.Set("user", "{}")
+			} else {
+				c.Session.Set("user", string(data))
+			}
 
 			// 判断是否需要跳转
 			if returnUrl != "" && c.checkReturnUrl(returnUrl) {

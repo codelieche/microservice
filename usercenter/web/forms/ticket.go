@@ -1,10 +1,11 @@
 package forms
 
 type TicketValidateUser struct {
-	ID       uint   `json:"id"`       // 用户的ID
-	Username string `json:"username"` // 用户名
-	Email    string `json:"email"`    // 用户邮箱
-	Mobile   string `json:"mobile"`   // 用户手机号
+	ID       uint   `json:"id"`        // 用户的ID
+	Username string `json:"username"`  // 用户名
+	Email    string `json:"email"`     // 用户邮箱
+	Mobile   string `json:"mobile"`    // 用户手机号
+	IsActive bool   `json:"is_active"` // 是否激活
 }
 
 type TicketValidateResponse struct {

@@ -65,6 +65,10 @@ func (c *PageUserControler) checkReturnUrl(returnUrl string) bool {
 	} else {
 		// 判断url的host
 		host := u.Host
+		// 如果有端口号，去掉端口号
+		if strings.Contains(host, ":") {
+			host = strings.Split(host, ":")[0]
+		}
 		config := common.GetConfig()
 		for _, domain := range config.Http.Domains {
 			//log.Println(domain)
@@ -140,6 +144,7 @@ func (c *PageUserControler) GetLogin() {
 				// 保存ticket
 				if ticket, err = c.Service.SaveTicket(ticket); err != nil {
 					// 保存ticket出错
+					log.Println("保存ticket出错:", err.Error())
 				} else {
 					// 跳转带ticket的页面
 				}
@@ -226,6 +231,11 @@ func (c *PageUserControler) PostLogin() mvc.Result {
 		goto ERR
 	}
 
+	if !user.IsActive {
+		err = errors.New("用户已被禁用")
+		goto ERR
+	}
+
 	// 判断用户密码是否正确
 	//if success, err = user.CheckPassword(password); err != nil {
 	if success, err = c.Service.CheckUserPassword(user, password); err != nil {
@@ -297,5 +307,7 @@ ERR:
 }
 
 func (c *PageUserControler) GetInfo() string {
+	u := c.Ctx.Values().Get("user")
+	log.Printf("从ctx中获取用户：%s\n", u)
 	return "This Is User Info Page"
 }

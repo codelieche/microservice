@@ -3,7 +3,10 @@ package app
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/codelieche/microservice/usercenter/common"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
@@ -15,12 +18,13 @@ var redisDB *redis.Database
 
 func initSession() {
 	// 1. 连接Redis
+	config := common.GetConfig()
 	cfg := redis.Config{
 		Network:   "tcp",
-		Addr:      "127.0.0.1:6379",
-		Clusters:  nil,
+		Addr:      "",
+		Clusters:  config.Database.Redis.Hosts,
 		Password:  "",
-		Database:  "0",
+		Database:  strconv.Itoa(config.Database.Redis.DB),
 		MaxActive: 10,
 		Timeout:   time.Second * 20,
 		Prefix:    "",

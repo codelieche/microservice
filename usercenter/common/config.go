@@ -28,13 +28,25 @@ type HttpConfig struct {
 	Domains   []string          `json:"domains" yaml:"domains"` // 可以跳转的域名
 }
 
-// MySQL数据库相关配置
 type Database struct {
-	Host     string `json:"host",yaml:"host"`           // 数据库地址
-	Port     int    `json:"port", yaml:"port"`          // 端口号
-	User     string `json:"user", yaml:"user"`          // 用户
-	Password string `json:"password", yaml:"password"`  // 用户密码
-	Database string `json:"database", yaml: "database"` // 数据库
+	MySQL *MySQLDatabase `json:"mysql" yaml:"mysql"`
+	Redis *RedisDatabase `json:"redis" yaml:"redis"`
+}
+
+// MySQL数据库相关配置
+type MySQLDatabase struct {
+	Host     string `json:"host" yaml:"host"`          // 数据库地址
+	Port     int    `json:"port" yaml:"port"`          // 端口号
+	User     string `json:"user" yaml:"user"`          // 用户
+	Password string `json:"password" yaml:"password"`  // 用户密码
+	Database string `json:"database" yaml: "database"` // 数据库
+}
+
+// Redis配置
+type RedisDatabase struct {
+	Hosts    []string `json:"hosts" yaml:"hosts"`       // Redis集群地址
+	Password string   `json:"password" yaml:"password"` // redis的密码
+	DB       int      `json:"db" yaml:db`               // 哪个库
 }
 
 // 解析项目的相关配置
@@ -112,17 +124,24 @@ func ParseConfig() (err error) {
 			Timeout: 30,
 		},
 		Database: &Database{
-			Host:     "127.0.0.1",
-			Port:     3306,
-			User:     "root",
-			Password: "",
-			Database: "usercenter",
+			MySQL: &MySQLDatabase{
+				Host:     "127.0.0.1",
+				Port:     3306,
+				User:     "root",
+				Password: "",
+				Database: "usercenter",
+			},
+			Redis: &RedisDatabase{
+				Hosts:    []string{"127.0.0.1:6379"},
+				Password: "",
+				DB:       0,
+			},
 		},
 		Debug: false,
 	}
 
 	if err = yaml.Unmarshal(content, config); err != nil {
-		//log.Println(err.Error())
+		log.Println("解析配置文件出错：", err.Error())
 		return err
 	} else {
 		// 解析配置成功

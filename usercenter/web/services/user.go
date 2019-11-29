@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"log"
-	"time"
 
 	"github.com/codelieche/microservice/usercenter/common"
 
@@ -44,8 +43,8 @@ func (s *userService) DeleteUserByIdOrName(idOrName string) (success bool, err e
 		// 2. 禁用用户
 		isActive := user.IsActive
 		updateFields := map[string]interface{}{
-			"IsActive":  false,
-			"DeletedAt": time.Now(),
+			"IsActive": false,
+			//"DeletedAt": time.Now(),
 		}
 		if user, err = s.repo.UpdateByID(int64(user.ID), updateFields); err != nil {
 			log.Println(err)

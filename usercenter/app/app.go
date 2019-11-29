@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/codelieche/microservice/usercenter/web/middlewares"
+
 	"github.com/codelieche/microservice/usercenter/common"
 
 	"github.com/kataras/iris/v12"
@@ -40,6 +42,9 @@ func newApp() *iris.Application {
 	useSessionMiddleware(app)
 	//app.Use(checkLogin)
 	//app.Use(checkLogin)
+
+	// 给context设置User
+	app.Use(middlewares.CtxSetUserMiddleware)
 
 	// 处理错误页面
 	handleAppOnError(app)
