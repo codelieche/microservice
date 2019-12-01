@@ -14,6 +14,7 @@ type TicketService interface {
 	GetByName(idOrName string) (ticket *datamodels.Ticket, err error)
 	GetByIdOrName(idOrName string) (ticket *datamodels.Ticket, err error)
 	List(offset int, limit int) (tickets []*datamodels.Ticket, err error)
+	ListByUser(userID int, offset int, limit int) (tickets []*datamodels.Ticket, err error)
 }
 
 // 实例化Ticket Service
@@ -50,7 +51,12 @@ func (s *ticketService) GetByIdOrName(idOrName string) (ticket *datamodels.Ticke
 	return s.repo.GetByIdOrName(idOrName)
 }
 
-// 获取用户Ticket列表
+// 获取Ticket列表
 func (s *ticketService) List(offset int, limit int) (tickets []*datamodels.Ticket, err error) {
 	return s.repo.List(offset, limit)
+}
+
+// 获取用户Ticket列表
+func (s *ticketService) ListByUser(userID int, offset int, limit int) (tickets []*datamodels.Ticket, err error) {
+	return s.repo.ListByUser(userID, offset, limit)
 }

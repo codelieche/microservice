@@ -15,6 +15,7 @@ type SafeLogRepository interface {
 	Get(id int64) (*datamodels.SafeLog, error)
 	// 获取SafeLog的列表
 	List(offset int, limit int) ([]*datamodels.SafeLog, error)
+	ListByUser(userID int, offset int, limit int) ([]*datamodels.SafeLog, error)
 }
 
 func NewSafeLogRepository(db *gorm.DB) SafeLogRepository {
@@ -57,6 +58,21 @@ func (r *safeLogRepository) List(offset int, limit int) (safeLogs []*datamodels.
 		return safeLogs, nil
 	}
 	return
+}
+
+// 获取用户的SafeLog的列表
+func (r *safeLogRepository) ListByUser(userID int, offset int, limit int) (safeLogs []*datamodels.SafeLog, err error) {
+	if userID < 1 {
+		err = errors.New("请传入User ID")
+		return nil, err
+	}
+	query := r.db.Model(&datamodels.SafeLog{}).Where("user_id = ?", userID).
+		Offset(offset).Limit(limit).Find(&safeLogs)
+	if query.Error != nil {
+		return nil, query.Error
+	} else {
+		return safeLogs, nil
+	}
 }
 
 // 根据ID获取SafeLog

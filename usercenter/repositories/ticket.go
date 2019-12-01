@@ -17,6 +17,7 @@ type TicketRepository interface {
 	UpdateByID(id int64, fields map[string]interface{}) (*datamodels.Ticket, error)
 	// 获取Ticket的列表
 	List(offset int, limit int) ([]*datamodels.Ticket, error)
+	ListByUser(userID int, offset int, limit int) ([]*datamodels.Ticket, error)
 	// 获取Ticket信息
 	Get(id int64) (*datamodels.Ticket, error)
 	// 根据Name获取Ticket信息
@@ -111,6 +112,22 @@ func (r *ticketRepository) UpdateByID(id int64, fields map[string]interface{}) (
 // 获取Ticket的列表
 func (r *ticketRepository) List(offset int, limit int) (tickets []*datamodels.Ticket, err error) {
 	query := r.db.Model(&datamodels.Ticket{}).Offset(offset).Limit(limit).Find(&tickets)
+	if query.Error != nil {
+		return nil, query.Error
+	} else {
+		return tickets, nil
+	}
+	return
+}
+
+// 获取用户的Ticket的列表
+func (r *ticketRepository) ListByUser(userID int, offset int, limit int) (tickets []*datamodels.Ticket, err error) {
+	if userID <= 0 {
+		err = errors.New("传入的用户ID为空")
+		return nil, err
+	}
+	query := r.db.Model(&datamodels.Ticket{}).
+		Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&tickets)
 	if query.Error != nil {
 		return nil, query.Error
 	} else {

@@ -24,7 +24,7 @@ func TestSafeLogRepository_Save(t *testing.T) {
 		i++
 		safeLog := &datamodels.SafeLog{
 			Category: uint(i),
-			UserID:   uint(i + 1),
+			UserID:   uint(i),
 			Content:  "消息内容",
 			Success:  true,
 			Address:  "192.168.1.101",

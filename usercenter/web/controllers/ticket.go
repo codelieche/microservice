@@ -3,6 +3,8 @@ package controllers
 import (
 	"errors"
 
+	"github.com/kataras/iris/v12/sessions"
+
 	"github.com/codelieche/microservice/usercenter/web/forms"
 
 	"github.com/codelieche/microservice/usercenter/datamodels"
@@ -12,6 +14,7 @@ import (
 )
 
 type TicketController struct {
+	Session *sessions.Session
 	Service services.TicketService
 	Ctx     iris.Context
 }
@@ -54,8 +57,9 @@ func (c *TicketController) GetListBy(page int) (tickets []*datamodels.Ticket, su
 	}
 
 	//	获取用户
+	userID := c.Session.GetIntDefault("userID", 0)
 	//log.Println(offset, limit)
-	if tickets, err = c.Service.List(offset, limit); err != nil {
+	if tickets, err = c.Service.ListByUser(userID, offset, limit); err != nil {
 		return nil, false
 	} else {
 		return tickets, true

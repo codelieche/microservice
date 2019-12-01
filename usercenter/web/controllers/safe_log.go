@@ -55,5 +55,8 @@ func (c *SafeLogController) GetListBy(page int) (safeLogs []*datamodels.SafeLog,
 	if page > 1 {
 		offset = (page - 1) * pageSize
 	}
-	return c.Service.List(offset, limit)
+
+	// 获取用户的ID
+	userID := c.Session.GetIntDefault("userID", 0)
+	return c.Service.ListByUser(userID, offset, limit)
 }
