@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
 	"github.com/jinzhu/gorm"
@@ -27,12 +29,15 @@ type safeLogRepository struct {
 func (r *safeLogRepository) Save(safeLog *datamodels.SafeLog) (*datamodels.SafeLog, error) {
 	if safeLog.ID > 0 {
 		// 是更新操作
-		if err := r.db.Model(safeLog).Update(safeLog).Error; err != nil {
-			return nil, err
-		} else {
-			return safeLog, nil
-		}
+		// 安全日志不支持修改查找
+		err := errors.New("ID>0SafeLog的，不支持更新操作")
+		return nil, err
 	} else {
+		// 判断是否指定了UserID
+		if safeLog.UserID < 1 {
+			err := errors.New("未指定用户")
+			return nil, err
+		}
 		// 是创建操作
 		if err := r.db.Create(safeLog).Error; err != nil {
 			return nil, err

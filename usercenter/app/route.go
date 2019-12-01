@@ -115,6 +115,19 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.TicketController))
 	})
 
+	// SafeLog相关api
+	mvc.Configure(apiV1.Party("/safelog"), func(app *mvc.Application) {
+		// 实例化User的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewSafeLogRepository(db)
+		// 实例化Service
+		sService := services.NewSafeLogService(repo)
+		// 注册Service
+		app.Register(sService, sess.Start)
+		// 添加Crontroller
+		app.Handle(new(controllers.SafeLogController))
+	})
+
 	// 添加测试相关api
 	mvc.Configure(app.Party("/demo"), func(app *mvc.Application) {
 		// 注册
