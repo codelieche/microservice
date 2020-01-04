@@ -191,3 +191,17 @@ func TestUserRepository_CheckUserPassword(t *testing.T) {
 	log.Println(r.CheckUserPassword(user1, "password21"))
 
 }
+
+func TestUserRepository_CreateAdminUser(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init user repository
+	r := NewUserRepository(db)
+
+	if user, err := r.CheckOrCreateAdminUser(); err != nil {
+		t.Error(err)
+	} else {
+		log.Println(user)
+	}
+}

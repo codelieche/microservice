@@ -31,6 +31,8 @@ type UserRepository interface {
 	GetUserRoles(user *datamodels.User) (roles []*datamodels.Role, err error)
 	// 用户更新操作
 	UpdateByID(id int64, fields map[string]interface{}) (*datamodels.User, error)
+	// 创建管理员用户
+	CheckOrCreateAdminUser() (user *datamodels.User, err error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -210,5 +212,30 @@ func (r *userRepository) UpdateByID(id int64, fields map[string]interface{}) (us
 		//} else {
 		//	return user, nil
 		//}
+	}
+}
+
+// 创建超级用户
+func (r *userRepository) CheckOrCreateAdminUser() (user *datamodels.User, err error) {
+	var count int
+	if err := r.db.Model(&datamodels.User{}).Count(&count).Error; err != nil {
+		return nil, err
+	} else {
+		// 判断count
+		if count < 1 {
+			// 创建admin用户
+			user := &datamodels.User{
+				Username:    "admin",
+				Password:    "changeme",
+				Mobile:      "",
+				Email:       "",
+				IsSuperuser: true,
+				IsActive:    true,
+			}
+			return r.Save(user)
+		} else {
+			// log.Println("当前用户个数为：", count)
+			return nil, nil
+		}
 	}
 }

@@ -9,7 +9,7 @@ http:
     user01: password01
     user02: password02
     user03: password03
-  domains:
+  domains: # 能够调整sso的host列表
     - "api.codelieche.com"
     - "www.codelieche.com"
     - "app.codelieche.com"

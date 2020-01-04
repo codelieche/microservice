@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codelieche/microservice/usercenter/repositories"
+
 	"github.com/codelieche/microservice/usercenter/web/forms"
 
 	"github.com/codelieche/microservice/usercenter/datamodels"
@@ -29,6 +31,7 @@ func CtxSetUserMiddleware(ctx iris.Context) {
 	session := sessions.Get(ctx)
 	// 判断是否有userID，而且用户是有效的
 	userID := session.GetIntDefault("userID", 0)
+CHECKUSER:
 	if userID > 0 {
 		// 根据ID获取用户，判断用户是否存在
 		db := datasources.GetDb()
@@ -50,6 +53,29 @@ func CtxSetUserMiddleware(ctx iris.Context) {
 		}
 	} else {
 		// 无需设置
+		// 判断是否传递了Token
+		log.Println(ctx.Request().Header)
+		if tokenStr := ctx.Request().Header.Get("Authorization"); tokenStr != "" {
+			// 判断token是否有效
+			db := datasources.GetDb()
+			r := repositories.NewTokenRepository(db)
+			if token, err := r.GetByToken(tokenStr); err != nil {
+				// 无需设置
+				//log.Println(err)
+			} else {
+				if token.UserID > 0 && token.IsActive {
+					if token.ExpiredAt != nil && token.ExpiredAt.Before(time.Now()) {
+						// token过期了
+					} else {
+						userID = int(token.UserID)
+						// token使用一次就相当于登录操作了，下次发起请求不携带token，也有登录状态了，这个可优化
+						session.Set("userID", userID)
+						goto CHECKUSER
+					}
+
+				}
+			}
+		}
 	}
 NEXT:
 	ctx.Next()
@@ -82,7 +108,7 @@ func IsAuthenticatedMiddleware(ctx iris.Context) {
 	// 跳转登录页面
 	if needReturnUrl {
 		urlPath := ctx.Request().URL.Path
-		if urlPath == "/api/v1/user/auth" || urlPath == "/api/v1/user/login" || urlPath == "/user/login" {
+		if urlPath == "/api/v1/user/auth" || urlPath == "/api/v1/user/create" || urlPath == "/api/v1/user/login" || urlPath == "/user/login" {
 			ctx.Next()
 		} else {
 			//log.Println("账号未登录")
@@ -115,6 +141,7 @@ func CheckLoginMiddleware(ctx iris.Context) {
 		// 判断是否需要验证用户在sso server是否登录:
 		if ctx.Host() != ssoServerHost {
 			// 当前中间件请求的服务host不是sso server的host
+			// 如果要严整检查，那么这里需要【同步】，检查确认登录了，才进入Next
 			go checkSessionIsOkRsync(session, userID)
 			ctx.Next()
 
@@ -136,7 +163,18 @@ func CheckLoginMiddleware(ctx iris.Context) {
 		}
 
 	} else {
-		needReturnUrl = true
+		// 检查是否有token
+		if tokenStr := ctx.Request().Header.Get("Authorization"); tokenStr != "" {
+			if CheckTokenIsOk(ctx, tokenStr) {
+				ctx.Next()
+			} else {
+				// 需要跳转登录页面
+				needReturnUrl = true
+			}
+		} else {
+			needReturnUrl = true
+
+		}
 	}
 	// 跳转登录页面
 	if needReturnUrl {
@@ -170,6 +208,75 @@ func CheckLoginMiddleware(ctx iris.Context) {
 		}
 	}
 
+}
+
+// 第三方系统检查传递的Token是否有效
+// 第三方系统调用CheckLoginMiddleware时如果用户未登录，但是传递了Authorization时需要调用
+// 如果token无效，那么就返回false；第三方系统再调整sso的登录页面
+// 如果token有效，设置session中的：userID和ssoSessionID，然后返回true
+func CheckTokenIsOk(ctx iris.Context, token string) bool {
+	session := sessions.Get(ctx)
+	// 后续应该用rpc检查
+
+	// 发起http请求
+	//ssoServerHost := "localhost:9000"
+	userAuthUrl := fmt.Sprintf("http://%s/api/v1/user/auth", ssoServerHost)
+	// 方式一：
+	client := &http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 2,
+	}
+
+	if req, err := http.NewRequest("GET", userAuthUrl, nil); err != nil {
+		log.Println(err)
+		return false
+	} else {
+		req.Header.Add("Authorization", token)
+		//req.Header.Add("Host", "sso.codelieche.com")
+
+		if resp, err := client.Do(req); err != nil {
+			log.Println(err)
+			return false
+		} else {
+			//log.Println(resp.StatusCode, sessionID)
+			//d, e := ioutil.ReadAll(resp.Body)
+			//log.Println(string(d), e)
+			if resp.StatusCode != 200 {
+				return false
+			}
+			defer resp.Body.Close()
+			if body, err := ioutil.ReadAll(resp.Body); err != nil {
+				log.Println(err)
+				return false
+			} else {
+				//log.Println(string(body))
+				result := forms.TicketValidateUser{}
+				if err = json.Unmarshal(body, &result); err != nil {
+					return false
+				} else {
+					// 判断是否成功
+					if result.IsActive {
+						// 设置session
+						// 设置ssoSessionID
+						for _, cookie := range resp.Cookies() {
+							//log.Println(cookie)
+							if cookie.Name == "sessionid" {
+								session.Set("ssoSessionID", cookie.Value)
+								session.Set("userID", result.ID)
+								return true
+							}
+						}
+						return false
+
+					} else {
+						return false
+					}
+				}
+			}
+		}
+	}
 }
 
 func CheckSessionIsOK(ssoSessionID string, userID int) bool {

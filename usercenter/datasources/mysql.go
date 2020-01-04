@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/codelieche/microservice/usercenter/datamodels"
 
@@ -52,9 +53,14 @@ func initDb() {
 	db.AutoMigrate(&datamodels.Application{})
 	db.AutoMigrate(&datamodels.Permission{})
 	db.AutoMigrate(&datamodels.Ticket{})
+	db.AutoMigrate(&datamodels.Token{})
 
 	//	4. 是否显示Model的SQL
 	db.LogMode(config.Debug)
+
+	db.DB().SetConnMaxLifetime(100 * time.Second)
+	db.DB().SetMaxOpenConns(100)
+	db.DB().SetMaxIdleConns(20)
 }
 
 func GetDb() *gorm.DB {

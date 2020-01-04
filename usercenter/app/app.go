@@ -44,6 +44,8 @@ func newApp() *iris.Application {
 	//app.Use(checkLogin)
 
 	// 给context设置User
+	// 设置下sso的域名
+	middlewares.SetSsoServerHost("0.0.0.0:9000")
 	app.Use(middlewares.CtxSetUserMiddleware)
 
 	// 处理错误页面

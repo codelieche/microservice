@@ -34,6 +34,8 @@ func setAppRoute(app *iris.Application) {
 		// 实例化User的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
+		// 检查或者创建用户admin
+		repo.CheckOrCreateAdminUser()
 		tRepo := repositories.NewTicketRepository(db)
 		// 实例化User的Service
 		uService := services.NewUserService(repo, tRepo)
