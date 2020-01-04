@@ -52,29 +52,38 @@ CHECKUSER:
 			goto NEXT
 		}
 	} else {
-		// 无需设置
 		// 判断是否传递了Token
-		log.Println(ctx.Request().Header)
+		// log.Println(ctx.Request().Header)
 		if tokenStr := ctx.Request().Header.Get("Authorization"); tokenStr != "" {
 			// 判断token是否有效
 			db := datasources.GetDb()
 			r := repositories.NewTokenRepository(db)
-			if token, err := r.GetByToken(tokenStr); err != nil {
-				// 无需设置
-				//log.Println(err)
-			} else {
-				if token.UserID > 0 && token.IsActive {
-					if token.ExpiredAt != nil && token.ExpiredAt.Before(time.Now()) {
-						// token过期了
-					} else {
-						userID = int(token.UserID)
-						// token使用一次就相当于登录操作了，下次发起请求不携带token，也有登录状态了，这个可优化
-						session.Set("userID", userID)
-						goto CHECKUSER
-					}
+			tokenList := strings.Split(tokenStr, " ")
+			if len(tokenList) >= 2 && tokenList[0] == "Token" {
+				tokenStr = tokenList[1]
+				if token, err := r.GetByToken(tokenStr); err != nil {
+					// 无需设置
+					//log.Println(err)
+				} else {
+					if token.UserID > 0 && token.IsActive {
+						if token.ExpiredAt != nil && token.ExpiredAt.Before(time.Now()) {
+							// token过期了
+						} else {
+							userID = int(token.UserID)
+							// token使用一次就相当于登录操作了，下次发起请求不携带token，也有登录状态了，这个可优化
+							session.Set("userID", userID)
+							goto CHECKUSER
+						}
 
+					}
 				}
+			} else {
+				// 传递的Token不正确
+				// 正确格式为：Token: xxxx
 			}
+
+		} else {
+			// 无需设置
 		}
 	}
 NEXT:

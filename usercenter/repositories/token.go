@@ -15,6 +15,7 @@ type TokenRepository interface {
 	// 获取
 	Get(id int64) (token *datamodels.Token, err error)
 	GetByToken(token string) (*datamodels.Token, error)
+	GetByIdOrToken(idOrToken string) (token *datamodels.Token, err error)
 	// 删除
 	Delete(token *datamodels.Token) (err error)
 	// 修改
@@ -82,6 +83,16 @@ func (r *tokenRepository) GetByToken(token string) (*datamodels.Token, error) {
 	r.db.Select(r.fields).First(tokenObj, "token = ?", token)
 	if tokenObj.ID > 0 {
 		return tokenObj, nil
+	} else {
+		return nil, common.NotFountError
+	}
+}
+
+func (r *tokenRepository) GetByIdOrToken(idOrToken string) (token *datamodels.Token, err error) {
+	token = &datamodels.Token{}
+	r.db.Select(r.fields).First(token, "id = ? or token = ?", idOrToken, idOrToken)
+	if token.ID > 0 {
+		return token, nil
 	} else {
 		return nil, common.NotFountError
 	}

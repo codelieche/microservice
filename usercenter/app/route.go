@@ -67,7 +67,7 @@ func setAppRoute(app *iris.Application) {
 
 	// 分组相关api
 	mvc.Configure(apiV1.Party("/group"), func(app *mvc.Application) {
-		// 实例化User的Repository
+		// 实例化Group的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewGroupRepository(db)
 		// 实例化Group的Service
@@ -80,7 +80,7 @@ func setAppRoute(app *iris.Application) {
 
 	// 角色相关api
 	mvc.Configure(apiV1.Party("/role"), func(app *mvc.Application) {
-		// 实例化User的Repository
+		// 实例化Role的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewRoleRepository(db)
 		// 实例化Group的Service
@@ -93,7 +93,7 @@ func setAppRoute(app *iris.Application) {
 
 	// 权限相关api
 	mvc.Configure(apiV1.Party("/permission"), func(app *mvc.Application) {
-		// 实例化User的Repository
+		// 实例化Permision的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewPermissionRepository(db)
 		// 实例化Service
@@ -106,7 +106,7 @@ func setAppRoute(app *iris.Application) {
 
 	// Ticket相关api
 	mvc.Configure(apiV1.Party("/ticket"), func(app *mvc.Application) {
-		// 实例化User的Repository
+		// 实例化Ticketr的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewTicketRepository(db)
 		// 实例化Service
@@ -119,7 +119,7 @@ func setAppRoute(app *iris.Application) {
 
 	// SafeLog相关api
 	mvc.Configure(apiV1.Party("/safelog"), func(app *mvc.Application) {
-		// 实例化User的Repository
+		// 实例化SafeLog的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewSafeLogRepository(db)
 		// 实例化Service
@@ -128,6 +128,19 @@ func setAppRoute(app *iris.Application) {
 		app.Register(sService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.SafeLogController))
+	})
+
+	// Token相关api
+	mvc.Configure(apiV1.Party("/token"), func(app *mvc.Application) {
+		// 实例化Token的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewTokenRepository(db)
+		// 实例化Service
+		sService := services.NewTokenService(repo)
+		// 注册Service
+		app.Register(sService, sess.Start)
+		// 添加Crontroller
+		app.Handle(new(controllers.TokenController))
 	})
 
 	// 添加测试相关api
