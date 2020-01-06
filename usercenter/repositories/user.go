@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -102,7 +103,11 @@ func (r *userRepository) SetUserPassword(user *datamodels.User, password string)
 	if err = user.SetPassword(password); err != nil {
 		return nil, err
 	} else {
-		if user, err := r.Save(user); err != nil {
+		if user.ID <= 0 {
+			err = fmt.Errorf("传入的ID小于等于0")
+			return nil, err
+		}
+		if err := r.db.Model(user).Where("id = ?", user.ID).Limit(1).Update("password", user.Password).Error; err != nil {
 			return nil, err
 		} else {
 			return user, nil
@@ -122,7 +127,6 @@ func (r *userRepository) List(offset int, limit int) (users []*datamodels.User, 
 
 // 根据ID获取User
 func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
-
 	user = &datamodels.User{}
 	r.db.Select(r.infoFields).First(user, "id = ?", id)
 	if user.ID > 0 {

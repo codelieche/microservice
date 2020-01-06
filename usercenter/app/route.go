@@ -70,10 +70,16 @@ func setAppRoute(app *iris.Application) {
 		// 实例化Group的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewGroupRepository(db)
+		userRepo := repositories.NewUserRepository(db)
+		ticketRepo := repositories.NewTicketRepository(db)
+		permissionRepo := repositories.NewPermissionRepository(db)
 		// 实例化Group的Service
 		gService := services.NewGroupService(repo)
+		userService := services.NewUserService(userRepo, ticketRepo)
+		permissionService := services.NewPermissionService(permissionRepo)
+
 		// 注册Service
-		app.Register(gService)
+		app.Register(gService, userService, permissionService)
 		// 添加Crontroller
 		app.Handle(new(controllers.GroupController))
 	})

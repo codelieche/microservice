@@ -7,6 +7,9 @@ import (
 
 // Group Service Interface
 type GroupService interface {
+	// 创建Group
+	Create(group *datamodels.Group) (*datamodels.Group, error)
+	Update(group *datamodels.Group) (*datamodels.Group, error)
 	GetById(id int64) (group *datamodels.Group, err error)
 	GetByIdOrName(idOrName string) (group *datamodels.Group, err error)
 	List(offset int, limit int) (groups []*datamodels.Group, err error)
@@ -22,6 +25,16 @@ func NewGroupService(repo repositories.GroupRepository) GroupService {
 // group Service
 type groupService struct {
 	repo repositories.GroupRepository
+}
+
+// 创建分组
+func (s *groupService) Create(group *datamodels.Group) (*datamodels.Group, error) {
+	return s.repo.Save(group)
+}
+
+// 更新分组
+func (s *groupService) Update(group *datamodels.Group) (*datamodels.Group, error) {
+	return s.repo.Save(group)
 }
 
 func (s *groupService) GetById(id int64) (group *datamodels.Group, err error) {

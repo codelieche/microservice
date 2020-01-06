@@ -100,5 +100,47 @@ func TestGroupRepository_GetUserList(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestGroupRepository_Get(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init group repository
+	r := NewGroupRepository(db)
+	rUser := NewUserRepository(db)
+
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	//db.LogMode(true)
+
+	// 3. 获取分组
+	if group, err := r.Get(1); err != nil {
+		t.Error(err)
+	} else {
+		log.Println(group)
+
+		group.Users = []*datamodels.User{}
+		log.Println("group.Users:", group.Users)
+
+		for _, i := range []int64{2, 5, 7} {
+			//user := &datamodels.User{}
+			//user.ID = uint(i)
+			//group.Users = append(group.Users, user)
+
+			if user, err := rUser.Get(i); err != nil {
+				log.Println(err)
+			} else {
+				group.Users = append(group.Users, user)
+			}
+		}
+
+		group.Name = "goup-01-new"
+
+		log.Println(r.Save(group))
+
+		log.Println(r.Get(int64(group.ID)))
+
+		// 获取分组的用户
+	}
 
 }

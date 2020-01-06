@@ -25,8 +25,8 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 	return &groupRepository{
 		db:               db,
 		infoFields:       []string{"id", "created_at", "updated_at", "name"},
-		userFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile", "is_active"},
-		permissionFields: []string{"id", "created_at", "updated_at", "app_id", "code"},
+		userFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile", "is_active", "group_id"},
+		permissionFields: []string{"id", "created_at", "updated_at", "name", "app_id", "code", "group_id"},
 	}
 }
 
@@ -40,17 +40,55 @@ type groupRepository struct {
 // 保存Group
 func (r *groupRepository) Save(group *datamodels.Group) (*datamodels.Group, error) {
 	if group.ID > 0 {
-		// 是更新操作
-		if err := r.db.Model(&datamodels.Group{}).Update(group).Error; err != nil {
+		// 更新的话用事务的方式来处理
+		// 当编辑的时候，如果Users、Permissions为空，那么也需要处理
+		tx := r.db.Begin()
+		// 1. 更新users
+		if len(group.Users) > 0 {
+			users := group.Users
+			if err := tx.Model(group).Association("Users").Replace(users).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 删除掉groups的所有Users
+			//log.Println("需要对用户置空")
+			if err := tx.Model(group).Association("Users").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+		// 2. 更新Permissions
+		if len(group.Permissions) > 0 {
+			permissions := group.Permissions
+			if err := tx.Model(group).Association("Permissions").Replace(permissions).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 需要把permissions置空
+			if err := tx.Model(group).Association("Permissions").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 3. 更新group
+		group.Users = nil
+		if err := tx.Model(&datamodels.Group{}).Update(group).Error; err != nil {
+			tx.Rollback()
 			return nil, err
 		} else {
-			return group, nil
+			tx.Commit()
+			return r.Get(int64(group.ID))
 		}
+
 	} else {
 		// 是创建操作
 		if err := r.db.Create(group).Error; err != nil {
 			return nil, err
 		} else {
+
 			return group, nil
 		}
 
@@ -65,15 +103,18 @@ func (r *groupRepository) List(offset int, limit int) (groups []*datamodels.Grou
 	} else {
 		return groups, nil
 	}
-	return
 }
 
 // 根据ID获取分组
 func (r *groupRepository) Get(id int64) (group *datamodels.Group, err error) {
-
 	group = &datamodels.Group{}
-	r.db.Select(r.infoFields).First(group, "id = ?", id)
-	if group.ID > 0 {
+	r.db.Model(group).Preload("Users", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.userFields)
+	}).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.permissionFields)
+	}).Select(r.infoFields).First(group, "id = ?", id)
+
+	if group != nil && group.ID > 0 {
 		return group, nil
 	} else {
 		return nil, common.NotFountError
@@ -84,7 +125,13 @@ func (r *groupRepository) Get(id int64) (group *datamodels.Group, err error) {
 func (r *groupRepository) GetByIdOrName(idOrName string) (group *datamodels.Group, err error) {
 
 	group = &datamodels.Group{}
-	r.db.Select(r.infoFields).First(group, "id = ? or name = ?", idOrName, idOrName)
+	r.db.Model(group).Preload("Users", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.userFields)
+	}).
+		Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+			return db.Select(r.permissionFields)
+		}).
+		Select(r.infoFields).First(group, "id = ? or name = ?", idOrName, idOrName)
 	if group.ID > 0 {
 		return group, nil
 	} else {
