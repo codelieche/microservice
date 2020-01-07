@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/codelieche/microservice/usercenter/web/forms"
 	"github.com/go-playground/validator"
@@ -14,18 +16,13 @@ import (
 )
 
 type UserController struct {
-	Session *sessions.Session
-	Ctx     iris.Context
-	Service services.UserService
+	Session           *sessions.Session
+	Ctx               iris.Context
+	Service           services.UserService
+	GroupService      services.GroupService
+	RoleService       services.RoleService
+	PermissionService services.PermissionService
 }
-
-//func (c *UserController) GetBy(id int64) (user *datamodels.User, success bool) {
-//	if user, err := c.Service.GetById(id); err != nil {
-//		return nil, false
-//	} else {
-//		return user, true
-//	}
-//}
 
 func (c *UserController) GetBy(idOrName string) (user *datamodels.User, success bool) {
 	if user, err := c.Service.GetByIdOrName(idOrName); err != nil {
@@ -128,6 +125,97 @@ func (c *UserController) PostCreate() (user *datamodels.User, err error) {
 		// 创建用户成功
 		return user, nil
 	}
+}
+
+// 用户更新
+func (c *UserController) PutBy(id int64, ctx iris.Context) (user *datamodels.User, err error) {
+	// 1. 定义变量
+	var (
+		contentType string
+		form        *forms.UserUpdateform
+		//updateFields map[string]interface{}
+		groups      []*datamodels.Group
+		group       *datamodels.Group
+		roles       []*datamodels.Role
+		role        *datamodels.Role
+		permissions []*datamodels.Permission
+		permission  *datamodels.Permission
+	)
+
+	// 2. 获取数据
+	// 2-1: 获取用户
+	if user, err = c.Service.GetById(id); err != nil {
+		return nil, err
+	}
+
+	// 2-2: 获取Content-Type
+	contentType = ctx.Request().Header.Get("Content-Type")
+
+	// 2-3：解析表单
+	form = &forms.UserUpdateform{}
+	if strings.Contains(contentType, "application/json") {
+		err = ctx.ReadJSON(form)
+	} else {
+		err = ctx.ReadForm(form)
+	}
+
+	// 2-4：判断获取form是否成功
+	if err != nil {
+		return nil, err
+	} else {
+		//log.Println(form)
+	}
+
+	// 3. 处理更新字段
+	//updateFields = make(map[string]interface{})
+	//updateFields["email"] = form.Email
+	//updateFields["mobile"] = form.Mobile
+	user.Email = form.Email
+	user.Mobile = form.Mobile
+
+	// 处理many2many字段
+	groups = []*datamodels.Group{}
+	if len(form.Groups) > 0 {
+		for _, i := range form.Groups {
+			if group, err = c.GroupService.GetById(i); err != nil {
+				err = fmt.Errorf("分组(ID:%d)：%s", i, err)
+				return nil, err
+			} else {
+				groups = append(groups, group)
+			}
+		}
+		//updateFields["groups"] = groups
+	}
+	user.Groups = groups
+
+	roles = []*datamodels.Role{}
+	if len(form.Roles) > 0 {
+		for _, i := range form.Roles {
+			if role, err = c.RoleService.GetById(i); err != nil {
+				err = fmt.Errorf("角色(ID:%d)：%s", i, err)
+				return nil, err
+			} else {
+				roles = append(roles, role)
+			}
+		}
+	}
+	user.Roles = roles
+
+	permissions = []*datamodels.Permission{}
+	if len(form.Permissions) > 0 {
+		for _, i := range form.Permissions {
+			if permission, err = c.PermissionService.GetById(i); err != nil {
+				err = fmt.Errorf("权限(ID:%d)：%s", i, err)
+				return nil, err
+			} else {
+				permissions = append(permissions, permission)
+			}
+		}
+	}
+	user.Permissions = permissions
+
+	// 4. 更新字段
+	return c.Service.Save(user)
 }
 
 func (c *UserController) DeleteBy(idOrName string) {

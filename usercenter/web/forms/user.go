@@ -9,6 +9,15 @@ type UserCreateForm struct {
 	Email      string `json:"email" validate:"omitempty,email"`
 }
 
+// 编辑用户表单
+type UserUpdateform struct {
+	Mobile      string  `json:"mobile" validate:"omitempty,max=100"`
+	Email       string  `json:"email" validate:"omitempty,email"`
+	Groups      []int64 `json:"groups" validate:"int"`
+	Roles       []int64 `json:"roles" validate:"int"`
+	Permissions []int64 `json:"permissions" validate:"int"`
+}
+
 // 用户登录表单
 type UserLoginForm struct {
 	Username string `json:"username" validate:"required"`

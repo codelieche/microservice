@@ -38,20 +38,22 @@ type UserRepository interface {
 
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
-		db:          db,
-		infoFields:  []string{"id", "username", "email", "mobile", "is_active"},
-		groupFields: []string{"id", "name"},
-		roleFields:  []string{"id", "name"},
+		db:               db,
+		infoFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile", "is_active"},
+		groupFields:      []string{"id", "created_at", "name", "user_id"},
+		roleFields:       []string{"id", "created_at", "name", "user_id"},
+		permissionFields: []string{"id", "created_at", "name", "code", "app_id", "user_id"},
 	}
 }
 
 // 用户Repository
 // 查询数据的时候，如果不指定Select，会Select *
 type userRepository struct {
-	db          *gorm.DB
-	infoFields  []string // 基本信息字段
-	groupFields []string // 分组字段
-	roleFields  []string // 角色字段
+	db               *gorm.DB
+	infoFields       []string // 基本信息字段
+	groupFields      []string // 分组字段
+	roleFields       []string // 角色字段
+	permissionFields []string // 权限字段
 }
 
 // 检查用户的密码
@@ -68,15 +70,66 @@ func (r *userRepository) CheckUserPassword(user *datamodels.User, password strin
 // 保存User
 func (r *userRepository) Save(user *datamodels.User) (*datamodels.User, error) {
 	// 保存账号
+
 	if user.ID > 0 {
 		// 是更新操作
-		user.Password = ""
 		user.Username = ""
-		// 设置为空，就不会更新这字段
-		if err := r.db.Model(&datamodels.User{}).Update(user).Error; err != nil {
+		//user.Password = ""
+
+		tx := r.db.Begin()
+		// 判断是否需要更新Groups
+		if len(user.Groups) > 0 {
+			if err := tx.Model(user).Association("Groups").Replace(user.Groups).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 删除掉所有的Groups
+			if err := tx.Model(user).Association("Groups").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 判断是否需要更新Roles
+		if len(user.Roles) > 0 {
+			if err := tx.Model(user).Association("Roles").Replace(user.Roles).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 删除掉所有的Roles
+			if err := tx.Model(user).Association("Roles").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 是否需要更新权限
+		if len(user.Permissions) > 0 {
+			if err := tx.Model(user).Association("Permissions").Replace(user.Permissions).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 删除掉所有的Permissions
+			if err := tx.Model(user).Association("Permissions").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 关于空值
+		// r.db.Update: 不会更新空值
+		// tx.Update()：是会更新空值的
+		if err := tx.Model(&datamodels.User{}).Where("id=?", user.ID).Limit(1).
+			Update(map[string]interface{}{"email": user.Email, "mobile": user.Mobile}).Error; err != nil {
+			tx.Rollback()
 			return nil, err
 		} else {
-			return user, nil
+			tx.Commit()
+			//return user, nil
+			return r.Get(int64(user.ID))
 		}
 	} else {
 		// 是创建操作
@@ -128,7 +181,11 @@ func (r *userRepository) List(offset int, limit int) (users []*datamodels.User, 
 // 根据ID获取User
 func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 	user = &datamodels.User{}
-	r.db.Select(r.infoFields).First(user, "id = ?", id)
+	r.db.Select(r.infoFields).Preload("Groups", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.groupFields)
+	}).Preload("Roles", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.roleFields)
+	}).First(user, "id = ?", id)
 	if user.ID > 0 {
 		return user, nil
 	} else {
@@ -138,9 +195,12 @@ func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 
 // 根据ID/Name获取User
 func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, err error) {
-
 	user = &datamodels.User{}
-	r.db.Select(r.infoFields).First(user, "id = ? or username = ?", idOrName, idOrName)
+	r.db.Select(r.infoFields).Preload("Groups", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.groupFields)
+	}).Preload("Roles", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.roleFields)
+	}).First(user, "id = ? or username = ?", idOrName, idOrName)
 	if user.ID > 0 {
 		return user, nil
 	} else {
@@ -196,10 +256,12 @@ func (r *userRepository) UpdateByID(id int64, fields map[string]interface{}) (us
 	//}
 
 	// 密码是不更新的: id也是不用传的
+	// username也不可更新
 	for key := range fields {
 		if strings.ToLower(key) == "password" {
 			delete(fields, key)
 		}
+		// username也不可更新
 		if strings.ToLower(key) == "username" {
 			delete(fields, key)
 		}

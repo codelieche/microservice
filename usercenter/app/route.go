@@ -34,13 +34,18 @@ func setAppRoute(app *iris.Application) {
 		// 实例化User的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
+		//groupRepo := repositories.NewGroupRepository(db)
+		//roleRepo := repositories.NewRoleRepository(db)
 		// 检查或者创建用户admin
 		repo.CheckOrCreateAdminUser()
 		tRepo := repositories.NewTicketRepository(db)
 		// 实例化User的Service
 		uService := services.NewUserService(repo, tRepo)
+		//gService := services.NewGroupService(groupRepo)
+		//rService := services.NewRoleService(roleRepo)
 
 		// 注册Service
+		//app.Register(uService, gService, rService, sess.Start)
 		app.Register(uService, sess.Start)
 
 		app.Handle(new(controllers.PageUserControler))
@@ -57,10 +62,16 @@ func setAppRoute(app *iris.Application) {
 		db := datasources.GetDb()
 		repo := repositories.NewUserRepository(db)
 		tRepo := repositories.NewTicketRepository(db)
+		groupRepo := repositories.NewGroupRepository(db)
+		roleRepo := repositories.NewRoleRepository(db)
+		permissionRepo := repositories.NewPermissionRepository(db)
 		// 实例化User的Service
 		uService := services.NewUserService(repo, tRepo)
+		gService := services.NewGroupService(groupRepo)
+		rService := services.NewRoleService(roleRepo)
+		pService := services.NewPermissionService(permissionRepo)
 		// 注册Service
-		app.Register(uService, sess.Start)
+		app.Register(uService, gService, rService, pService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.UserController))
 	})

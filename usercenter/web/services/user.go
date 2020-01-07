@@ -13,7 +13,9 @@ import (
 // User Service Interface
 type UserService interface {
 	CreateUser(user *datamodels.User) (*datamodels.User, error)
+	Save(user *datamodels.User) (*datamodels.User, error)
 	GetById(id int64) (user *datamodels.User, err error)
+	Update(user *datamodels.User, fields map[string]interface{}) (*datamodels.User, error)
 	GetByIdOrName(idOrName string) (user *datamodels.User, err error)
 	List(offset int, limit int) (users []*datamodels.User, err error)
 	ChangeUserPassword(user *datamodels.User, password string) (*datamodels.User, error)
@@ -67,6 +69,14 @@ func (s *userService) DeleteUserByIdOrName(idOrName string) (success bool, err e
 
 func (s *userService) CreateUser(user *datamodels.User) (*datamodels.User, error) {
 	return s.repo.Save(user)
+}
+
+func (s *userService) Save(user *datamodels.User) (*datamodels.User, error) {
+	return s.repo.Save(user)
+}
+
+func (s *userService) Update(user *datamodels.User, fields map[string]interface{}) (*datamodels.User, error) {
+	return s.repo.UpdateByID(int64(user.ID), fields)
 }
 
 func (s *userService) GetById(id int64) (user *datamodels.User, err error) {

@@ -32,4 +32,4 @@ database:
     db: 0
 
 # 是否为开发环境
-debug: false
+debug: true
