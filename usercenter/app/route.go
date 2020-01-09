@@ -26,6 +26,18 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.IndexController))
 	})
 
+	// 准备db、repo、service
+	db := datasources.GetDb()
+	roleRepo := repositories.NewRoleRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+	ticketRepo := repositories.NewTicketRepository(db)
+	permissionRepo := repositories.NewPermissionRepository(db)
+
+	// service
+	roleService := services.NewRoleService(roleRepo)
+	userService := services.NewUserService(userRepo, ticketRepo)
+	permissionService := services.NewPermissionService(permissionRepo)
+
 	// User Page
 	pageUser := app.Party("/user")
 	// /user开头的页面都需要采用CheckLoginMiddleware中间件【如果未登录会跳转到登录页面】
@@ -97,13 +109,12 @@ func setAppRoute(app *iris.Application) {
 
 	// 角色相关api
 	mvc.Configure(apiV1.Party("/role"), func(app *mvc.Application) {
-		// 实例化Role的Repository
-		db := datasources.GetDb()
-		repo := repositories.NewRoleRepository(db)
+		//db := datasources.GetDb()
+		//repo := repositories.NewRoleRepository(db)
 		// 实例化Group的Service
-		gService := services.NewRoleService(repo)
+		//roleService := services.NewRoleService(repo)
 		// 注册Service
-		app.Register(gService)
+		app.Register(roleService, userService, permissionService)
 		// 添加Crontroller
 		app.Handle(new(controllers.RoleController))
 	})

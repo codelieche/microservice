@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
 	"github.com/jinzhu/gorm"
@@ -22,22 +24,69 @@ type RoleRepository interface {
 }
 
 func NewRoleRepository(db *gorm.DB) RoleRepository {
-	return &roleRepository{db: db}
+	return &roleRepository{
+		db:               db,
+		infoFields:       []string{"id", "created_at", "updated_at", "name"},
+		userFields:       []string{"id", "created_at", "updated_at", "username", "email", "mobile", "is_active", "role_id"},
+		permissionFields: []string{"id", "created_at", "updated_at", "name", "code", "app_id", "role_id"},
+	}
 }
 
 type roleRepository struct {
-	db *gorm.DB
+	db               *gorm.DB
+	infoFields       []string
+	userFields       []string
+	permissionFields []string
 }
 
 // 保存Role
 func (r *roleRepository) Save(role *datamodels.Role) (*datamodels.Role, error) {
+	if role.Name == "" {
+		err := errors.New("角色的name不可为空")
+		return nil, err
+	}
+
 	if role.ID > 0 {
 		// 是更新操作
-		if err := r.db.Model(&datamodels.Role{}).Update(role).Error; err != nil {
+		tx := r.db.Begin()
+
+		// 处理users
+		if len(role.Users) > 0 {
+			if err := tx.Model(role).Association("Users").Replace(role.Users).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 清空role的user
+			if err := tx.Model(role).Association("Users").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 处理Permissions
+		if len(role.Users) > 0 {
+			if err := tx.Model(role).Association("Permissions").Replace(role.Permissions).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			// 清空role的Permissions
+			if err := tx.Model(role).Association("Permissions").Clear().Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		// 提交修改
+		if err := tx.Model(role).Update(map[string]interface{}{"name": role.Name}).Error; err != nil {
+			tx.Rollback()
 			return nil, err
 		} else {
-			return role, nil
+			tx.Commit()
+			return r.Get(int64(role.ID))
 		}
+
 	} else {
 		// 是创建操作
 		if err := r.db.Create(role).Error; err != nil {
@@ -62,9 +111,12 @@ func (r *roleRepository) List(offset int, limit int) (roles []*datamodels.Role, 
 
 // 根据ID获取Role
 func (r *roleRepository) Get(id int64) (role *datamodels.Role, err error) {
-
 	role = &datamodels.Role{}
-	r.db.First(role, "id = ?", id)
+	r.db.Preload("Users", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.userFields)
+	}).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.permissionFields)
+	}).First(role, "id = ?", id)
 	if role.ID > 0 {
 		return role, nil
 	} else {
@@ -76,7 +128,11 @@ func (r *roleRepository) Get(id int64) (role *datamodels.Role, err error) {
 func (r *roleRepository) GetByIdOrName(idOrName string) (role *datamodels.Role, err error) {
 
 	role = &datamodels.Role{}
-	r.db.First(role, "id = ? or name = ?", idOrName, idOrName)
+	r.db.Preload("Users", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.userFields)
+	}).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.permissionFields)
+	}).First(role, "id = ? or name = ?", idOrName, idOrName)
 	if role.ID > 0 {
 		return role, nil
 	} else {

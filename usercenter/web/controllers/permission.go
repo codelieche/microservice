@@ -20,7 +20,6 @@ func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamod
 	var (
 		contentType string
 		form        *forms.PermissionCreateForm
-		app         *datamodels.Application
 	)
 	contentType = ctx.Request().Header.Get("Content-Type")
 
@@ -43,7 +42,7 @@ func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamod
 		AppID: uint(form.AppID),
 	}
 	// 判断app_id是否存在
-	if app, err = c.AppService.Get(form.AppID); err != nil {
+	if _, err = c.AppService.Get(form.AppID); err != nil {
 		err = fmt.Errorf("应用(id:%d)出错:%s", form.AppID, err)
 		return nil, err
 	}

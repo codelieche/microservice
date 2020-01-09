@@ -7,6 +7,8 @@ import (
 
 // Role Service Interface
 type RoleService interface {
+	Create(role *datamodels.Role) (*datamodels.Role, error)
+	Save(role *datamodels.Role) (*datamodels.Role, error)
 	GetById(id int64) (role *datamodels.Role, err error)
 	GetByIdOrName(idOrName string) (role *datamodels.Role, err error)
 	List(offset int, limit int) (roles []*datamodels.Role, err error)
@@ -22,6 +24,14 @@ func NewRoleService(repo repositories.RoleRepository) RoleService {
 // role Service
 type roleService struct {
 	repo repositories.RoleRepository
+}
+
+func (s *roleService) Create(role *datamodels.Role) (*datamodels.Role, error) {
+	return s.repo.Save(role)
+}
+
+func (s *roleService) Save(role *datamodels.Role) (*datamodels.Role, error) {
+	return s.repo.Save(role)
 }
 
 func (s *roleService) GetById(id int64) (role *datamodels.Role, err error) {
