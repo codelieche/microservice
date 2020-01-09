@@ -185,6 +185,8 @@ func (r *userRepository) Get(id int64) (user *datamodels.User, err error) {
 		return db.Select(r.groupFields)
 	}).Preload("Roles", func(db *gorm.DB) *gorm.DB {
 		return db.Select(r.roleFields)
+	}).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.permissionFields)
 	}).First(user, "id = ?", id)
 	if user.ID > 0 {
 		return user, nil
@@ -200,6 +202,8 @@ func (r *userRepository) GetByIdOrName(idOrName string) (user *datamodels.User, 
 		return db.Select(r.groupFields)
 	}).Preload("Roles", func(db *gorm.DB) *gorm.DB {
 		return db.Select(r.roleFields)
+	}).Preload("Permissions", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.permissionFields)
 	}).First(user, "id = ? or username = ?", idOrName, idOrName)
 	if user.ID > 0 {
 		return user, nil

@@ -1,13 +1,105 @@
 package controllers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/codelieche/microservice/usercenter/datamodels"
+	"github.com/codelieche/microservice/usercenter/web/forms"
 	"github.com/codelieche/microservice/usercenter/web/services"
 	"github.com/kataras/iris/v12"
 )
 
 type PermissionController struct {
-	Service services.PermissionService
+	Service    services.PermissionService
+	AppService services.ApplicationService
+}
+
+func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamodels.Permission, err error) {
+	// 定义变量
+	var (
+		contentType string
+		form        *forms.PermissionCreateForm
+		app         *datamodels.Application
+	)
+	contentType = ctx.Request().Header.Get("Content-Type")
+
+	form = &forms.PermissionCreateForm{}
+
+	if strings.Contains(contentType, "application/json") {
+		err = ctx.ReadJSON(form)
+	} else {
+		err = ctx.ReadForm(form)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 实例化Permission
+	permission = &datamodels.Permission{
+		Name:  form.Name,
+		Code:  form.Code,
+		AppID: uint(form.AppID),
+	}
+	// 判断app_id是否存在
+	if app, err = c.AppService.Get(form.AppID); err != nil {
+		err = fmt.Errorf("应用(id:%d)出错:%s", form.AppID, err)
+		return nil, err
+	}
+
+	if permission, err = c.Service.Create(permission); err != nil {
+		return nil, err
+	} else {
+		return permission, nil
+	}
+}
+
+func (c *PermissionController) PutBy(id int64, ctx iris.Context) (permission *datamodels.Permission, err error) {
+	// 定义变量
+	var (
+		app         *datamodels.Application
+		contentType string
+		form        *forms.PermissionCreateForm
+	)
+	contentType = ctx.Request().Header.Get("Content-Type")
+
+	form = &forms.PermissionCreateForm{}
+
+	if strings.Contains(contentType, "application/json") {
+		err = ctx.ReadJSON(form)
+	} else {
+		err = ctx.ReadForm(form)
+	}
+
+	if err != nil {
+		return nil, err
+	} else {
+		//log.Println(form)
+	}
+
+	// 获取permission
+	if permission, err = c.Service.GetById(id); err != nil {
+		return nil, err
+	}
+
+	// 判断app_id是否存在
+	if app, err = c.AppService.Get(form.AppID); err != nil {
+		err = fmt.Errorf("获取应用(id:%d)出错:%s", form.AppID, err)
+		return nil, err
+	}
+
+	permission.Application = app
+	permission.AppID = uint(form.AppID)
+	permission.Code = form.Code
+	permission.Name = form.Name
+
+	// 对Application进行更新
+	if permission, err = c.Service.Save(permission); err != nil {
+		return nil, err
+	} else {
+		return permission, nil
+	}
 }
 
 func (c *PermissionController) GetBy(id int64) (permission *datamodels.Permission, success bool) {

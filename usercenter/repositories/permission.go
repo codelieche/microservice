@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
 	"github.com/jinzhu/gorm"
@@ -20,15 +22,31 @@ type PermissionRepository interface {
 }
 
 func NewPermissionRepository(db *gorm.DB) PermissionRepository {
-	return &permissionRepository{db: db}
+	return &permissionRepository{
+		db:         db,
+		infoFields: []string{"id", "created_at", "updated_at", "name", "code", "app_id"},
+		appFields:  []string{"id", "created_at", "updated_at", "name", "code", "info"},
+	}
 }
 
 type permissionRepository struct {
-	db *gorm.DB
+	db         *gorm.DB
+	infoFields []string
+	appFields  []string
 }
 
 // 保存Permission
 func (r *permissionRepository) Save(permission *datamodels.Permission) (*datamodels.Permission, error) {
+
+	if permission.Name == "" {
+		err := errors.New("name不可为空")
+		return nil, err
+	}
+	if permission.Code == "" {
+		err := errors.New("code不可为空")
+		return nil, err
+	}
+
 	if permission.ID > 0 {
 		// 是更新操作
 		if err := r.db.Model(&datamodels.Permission{}).Update(permission).Error; err != nil {
@@ -49,7 +67,8 @@ func (r *permissionRepository) Save(permission *datamodels.Permission) (*datamod
 
 // 获取Permission的列表
 func (r *permissionRepository) List(offset int, limit int) (permissions []*datamodels.Permission, err error) {
-	query := r.db.Model(&datamodels.Permission{}).Offset(offset).Limit(limit).Find(&permissions)
+	query := r.db.Model(&datamodels.Permission{}).Select(r.infoFields).
+		Offset(offset).Limit(limit).Find(&permissions)
 	if query.Error != nil {
 		return nil, query.Error
 	} else {
@@ -62,7 +81,9 @@ func (r *permissionRepository) List(offset int, limit int) (permissions []*datam
 func (r *permissionRepository) Get(id int64) (permission *datamodels.Permission, err error) {
 
 	permission = &datamodels.Permission{}
-	r.db.First(permission, "id = ?", id)
+	r.db.Preload("Application", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.appFields)
+	}).Select(r.infoFields).First(permission, "id = ?", id)
 	if permission.ID > 0 {
 		return permission, nil
 	} else {
@@ -74,7 +95,9 @@ func (r *permissionRepository) Get(id int64) (permission *datamodels.Permission,
 func (r *permissionRepository) GetByAppIDAndCode(appID int, code string) (permission *datamodels.Permission, err error) {
 
 	permission = &datamodels.Permission{}
-	r.db.First(permission, "app_id = ? and code = ?", appID, code)
+	r.db.Preload("Application", func(db *gorm.DB) *gorm.DB {
+		return db.Select(r.appFields)
+	}).Select(r.infoFields).First(permission, "app_id = ? and code = ?", appID, code)
 	if permission.ID > 0 {
 		return permission, nil
 	} else {
@@ -85,7 +108,7 @@ func (r *permissionRepository) GetByAppIDAndCode(appID int, code string) (permis
 // 获取权限的用户
 func (r *permissionRepository) GetUserList(
 	permission *datamodels.Permission, offset int, limit int) (users []*datamodels.User, err error) {
-	query := r.db.Model(permission).Offset(offset).Limit(limit).Related(&users, "Users")
+	query := r.db.Model(permission).Select(r.infoFields).Offset(offset).Limit(limit).Related(&users, "Users")
 	if query.Error != nil {
 		return nil, query.Error
 	} else {

@@ -108,15 +108,32 @@ func setAppRoute(app *iris.Application) {
 		app.Handle(new(controllers.RoleController))
 	})
 
+	// Application相关api
+	mvc.Configure(apiV1.Party("/app"), func(app *mvc.Application) {
+		// 实例化Application的Repository
+		db := datasources.GetDb()
+		repo := repositories.NewApplicationRepository(db)
+		pRepo := repositories.NewPermissionRepository(db)
+		// 实例化Service
+		appService := services.NewApplicationService(repo)
+		pService := services.NewPermissionService(pRepo)
+		// 注册Service
+		app.Register(appService, pService, sess.Start)
+		// 添加Crontroller
+		app.Handle(new(controllers.ApplicationController))
+	})
+
 	// 权限相关api
 	mvc.Configure(apiV1.Party("/permission"), func(app *mvc.Application) {
 		// 实例化Permision的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewPermissionRepository(db)
+		appRepo := repositories.NewApplicationRepository(db)
 		// 实例化Service
 		pService := services.NewPermissionService(repo)
+		appService := services.NewApplicationService(appRepo)
 		// 注册Service
-		app.Register(pService)
+		app.Register(pService, appService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.PermissionController))
 	})
