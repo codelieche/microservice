@@ -52,7 +52,8 @@ func (r *roleRepository) Save(role *datamodels.Role) (*datamodels.Role, error) {
 
 		// 处理users
 		if len(role.Users) > 0 {
-			if err := tx.Model(role).Association("Users").Replace(role.Users).Error; err != nil {
+			users := role.Users
+			if err := tx.Model(role).Association("Users").Replace(users).Error; err != nil {
 				tx.Rollback()
 				return nil, err
 			}
@@ -66,7 +67,8 @@ func (r *roleRepository) Save(role *datamodels.Role) (*datamodels.Role, error) {
 
 		// 处理Permissions
 		if len(role.Users) > 0 {
-			if err := tx.Model(role).Association("Permissions").Replace(role.Permissions).Error; err != nil {
+			permissions := role.Permissions
+			if err := tx.Model(role).Association("Permissions").Replace(permissions).Error; err != nil {
 				tx.Rollback()
 				return nil, err
 			}
@@ -79,7 +81,9 @@ func (r *roleRepository) Save(role *datamodels.Role) (*datamodels.Role, error) {
 		}
 
 		// 提交修改
-		if err := tx.Model(role).Update(map[string]interface{}{"name": role.Name}).Error; err != nil {
+		// 更新如果Model使用的是role，那么它同时会把关联的User的密码置空了
+		if err := tx.Model(&datamodels.Role{}).Where("id = ?", role.ID).
+			Update(map[string]interface{}{"name": role.Name}).Error; err != nil {
 			tx.Rollback()
 			return nil, err
 		} else {

@@ -34,6 +34,8 @@ type UserRepository interface {
 	UpdateByID(id int64, fields map[string]interface{}) (*datamodels.User, error)
 	// 创建管理员用户
 	CheckOrCreateAdminUser() (user *datamodels.User, err error)
+	// 获取用户的所有权限
+	GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -307,5 +309,34 @@ func (r *userRepository) CheckOrCreateAdminUser() (user *datamodels.User, err er
 			// log.Println("当前用户个数为：", count)
 			return nil, nil
 		}
+	}
+}
+
+// 获取用户的所有权限
+func (r *userRepository) GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error) {
+	permissions = []*datamodels.Permission{}
+
+	// 查询permissions的条件语句
+	sql := `ID in (
+SELECT permission_id from role_permissions 
+	WHERE role_id in 
+	(SELECT role_id FROM role_users WHERE user_id=?)
+UNION
+
+SELECT permission_id from group_permissions 
+	WHERE group_id in 
+	(SELECT group_id FROM group_users WHERE user_id=?)
+UNION
+SELECT permission_id from user_permissions WHERE user_id = ?
+)`
+
+	if err = r.db.Model(&datamodels.Permission{}).
+		Select([]string{"id", "created_at", "name", "code", "app_id"}).
+		Where(sql, id, id, id).
+		Find(&permissions).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	} else {
+		return permissions, nil
 	}
 }

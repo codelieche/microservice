@@ -75,6 +75,7 @@ func (r *groupRepository) Save(group *datamodels.Group) (*datamodels.Group, erro
 
 		// 3. 更新group
 		group.Users = nil
+		// 更新如果Model使用的是group，那么它同时会把关联的User的密码置空了
 		if err := tx.Model(&datamodels.Group{}).Update(group).Error; err != nil {
 			tx.Rollback()
 			return nil, err

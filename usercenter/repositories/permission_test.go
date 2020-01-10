@@ -82,3 +82,22 @@ func TestPermissionRepository_GetByAppIDAndCode(t *testing.T) {
 		log.Println(permission.Name, permission.Code, permission.AppID, permission.Application)
 	}
 }
+
+func TestPermissionRepository_GetAllUsersPermissions(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init permission repository
+	r := NewPermissionRepository(db)
+	//db.LogMode(true)
+
+	var userID int64 = 1
+
+	if permissions, err := r.GetAllPermissionByUserID(userID); err != nil {
+		t.Error(err)
+	} else {
+		for _, permission := range permissions {
+			log.Println(permission.ID, permission.Name, permission.AppID, permission.Code)
+		}
+	}
+}

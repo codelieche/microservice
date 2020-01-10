@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"log"
 
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
@@ -19,6 +20,7 @@ type PermissionRepository interface {
 	GetByAppIDAndCode(appId int, code string) (*datamodels.Permission, error)
 	// 获取权限的用户列表
 	GetUserList(permission *datamodels.Permission, offset int, limit int) ([]*datamodels.User, error)
+	GetAllPermissionByUserID(id int64) (permissions []*datamodels.Permission, err error)
 }
 
 func NewPermissionRepository(db *gorm.DB) PermissionRepository {
@@ -113,5 +115,32 @@ func (r *permissionRepository) GetUserList(
 		return nil, query.Error
 	} else {
 		return users, nil
+	}
+}
+
+// 获取用户的所有权限
+func (r *permissionRepository) GetAllPermissionByUserID(id int64) (permissions []*datamodels.Permission, err error) {
+	permissions = []*datamodels.Permission{}
+
+	// 查询permissions的条件语句
+	sql := `ID in (
+SELECT permission_id from role_permissions 
+	WHERE role_id in 
+	(SELECT role_id FROM role_users WHERE user_id=?)
+UNION
+
+SELECT permission_id from group_permissions 
+	WHERE group_id in 
+	(SELECT group_id FROM group_users WHERE user_id=?)
+UNION
+SELECT permission_id from user_permissions WHERE user_id = ?
+)`
+
+	if err = r.db.Model(&datamodels.Permission{}).Select(r.infoFields).Where(sql, id, id, id).
+		Find(&permissions).Error; err != nil {
+		log.Println(err)
+		return nil, err
+	} else {
+		return permissions, nil
 	}
 }

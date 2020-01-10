@@ -23,6 +23,8 @@ type UserService interface {
 	CheckUserPassword(user *datamodels.User, password string) (bool, error)
 	SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error)
 	DeleteUserByIdOrName(idOrName string) (success bool, err error)
+	// 获取用户的所有权限
+	GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error)
 }
 
 // 实例化User Service
@@ -101,4 +103,9 @@ func (s *userService) CheckUserPassword(user *datamodels.User, password string) 
 
 func (s *userService) SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket, error) {
 	return s.ticketRepo.Save(ticket)
+}
+
+// 获取用户的所有权限
+func (s *userService) GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error) {
+	return s.repo.GetAllPermissionByID(id)
 }

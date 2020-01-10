@@ -231,3 +231,15 @@ func (c *UserController) DeleteBy(idOrName string) {
 		}
 	}
 }
+
+// 获取当前用户的所有权限
+func (c *UserController) GetPermissions(ctx iris.Context) (permissions []*datamodels.Permission, err error) {
+	session := sessions.Get(ctx)
+	userID := session.GetIntDefault("userID", 0)
+	return c.Service.GetAllPermissionByID(int64(userID))
+}
+
+// 获取用户的所有权限
+func (c *UserController) GetByPermissions(id int64) (permissions []*datamodels.Permission, err error) {
+	return c.Service.GetAllPermissionByID(id)
+}
