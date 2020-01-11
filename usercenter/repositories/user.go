@@ -1,10 +1,14 @@
 package repositories
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/codelieche/microservice/usercenter/datasources"
+	"github.com/go-redis/redis/v7"
 
 	"github.com/codelieche/microservice/usercenter/common"
 	"github.com/codelieche/microservice/usercenter/datamodels"
@@ -36,6 +40,10 @@ type UserRepository interface {
 	CheckOrCreateAdminUser() (user *datamodels.User, err error)
 	// 获取用户的所有权限
 	GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error)
+	// 设置用户的权限缓存
+	// SetUserPermissionsCache()
+	// 获取或者设置用户的权限缓存
+	GetOrSetUserPermissionsCache(id int64, isSet bool) (permissionsMap map[string]bool, err error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -338,5 +346,70 @@ SELECT permission_id from user_permissions WHERE user_id = ?
 		return nil, err
 	} else {
 		return permissions, nil
+	}
+}
+
+// 获取或者设置用户的缓存
+func (r *userRepository) GetOrSetUserPermissionsCache(id int64, isSet bool) (permissionsMap map[string]bool, err error) {
+	// 1. 定义变量
+	var (
+		redisClient       *redis.Client
+		permissions       []*datamodels.Permission
+		permission        *datamodels.Permission
+		permissionsMapStr string
+		redisKey          string
+		key               string
+		data              []byte
+	)
+
+	// 2. 从redi获取权限缓存
+	permissionsMap = make(map[string]bool)
+	redisClient = datasources.GetRedisClient()
+	redisKey = fmt.Sprintf("user_%d_permissions", id)
+
+	// 如果 isSet是true，那么就不去缓存查看
+	if !isSet {
+		// 去redis缓存中查看
+		if permissionsMapStr, err = redisClient.Get(redisKey).Result(); err != nil {
+			if err != redis.Nil {
+				return permissionsMap, err
+			} else {
+				// 不存在，需要设置一下权限
+			}
+		} else {
+			// 存在，可以直接返回权限map
+			if err = json.Unmarshal([]byte(permissionsMapStr), &permissionsMapStr); err != nil {
+				// 出现错误，依然还是要继续获取权限map
+			} else {
+				return permissionsMap, nil
+			}
+		}
+	}
+
+	// 3. 获取用户的所有权限
+	if permissions, err = r.GetAllPermissionByID(id); err != nil {
+		return nil, err
+	}
+
+	// 3. 生成permissionsMap
+	//遍历permissions
+	for _, permission = range permissions {
+		key = fmt.Sprintf("app_%d_%s", permission.AppID, permission.Code)
+		permissionsMap[key] = true
+	}
+
+	// 4. 把permissionMap写入redis
+	if data, err = json.Marshal(permissionsMap); err != nil {
+		// 这里即使有错，依然返回
+		return permissionsMap, nil
+	} else {
+		// 写入redis
+		if err = redisClient.Set(redisKey, data, 0).Err(); err != nil {
+			log.Printf("设置缓存出错：%s ---> %s\n", redisKey, data)
+			return permissionsMap, nil
+		} else {
+			// 到这里才是真正的成功，即获取了权限map，也设置了缓存
+			return permissionsMap, nil
+		}
 	}
 }

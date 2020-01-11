@@ -252,6 +252,9 @@ func (c *PageUserControler) PostLogin() mvc.Result {
 				c.Session.Set("user", string(data))
 			}
 
+			// 没登录一次，更新用户的权限缓存
+			go c.Service.GetOrSetUserPermissionsCache(int64(user.ID), true)
+
 			// 判断是否需要跳转
 			if returnUrl != "" && c.checkReturnUrl(returnUrl) {
 				//log.Println(returnUrl)

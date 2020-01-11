@@ -205,3 +205,18 @@ func TestUserRepository_CreateAdminUser(t *testing.T) {
 		log.Println(user)
 	}
 }
+
+func TestUserRepository_GetOrSetUserPermissionsCache(t *testing.T) {
+	// 1. get db
+	db := datasources.GetDb()
+
+	// 2. init user repository
+	r := NewUserRepository(db)
+
+	// 3. 获取缓存
+	if permissionsMap, err := r.GetOrSetUserPermissionsCache(1, true); err != nil {
+		t.Error(err)
+	} else {
+		log.Println(permissionsMap)
+	}
+}

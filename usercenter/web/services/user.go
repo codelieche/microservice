@@ -25,6 +25,8 @@ type UserService interface {
 	DeleteUserByIdOrName(idOrName string) (success bool, err error)
 	// 获取用户的所有权限
 	GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error)
+	// 获取或者设置用户的权限缓存
+	GetOrSetUserPermissionsCache(id int64, isSet bool) (permissionsMap map[string]bool, err error)
 }
 
 // 实例化User Service
@@ -108,4 +110,9 @@ func (s *userService) SaveTicket(ticket *datamodels.Ticket) (*datamodels.Ticket,
 // 获取用户的所有权限
 func (s *userService) GetAllPermissionByID(id int64) (permissions []*datamodels.Permission, err error) {
 	return s.repo.GetAllPermissionByID(id)
+}
+
+// 获取或者设置用户的权限缓存
+func (s *userService) GetOrSetUserPermissionsCache(id int64, isSet bool) (permissionsMap map[string]bool, err error) {
+	return s.repo.GetOrSetUserPermissionsCache(id, isSet)
 }

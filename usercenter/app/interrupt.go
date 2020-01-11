@@ -15,4 +15,8 @@ func handleAppInterupt() {
 
 	// 关闭session的redis数据库
 	redisDB.Close()
+
+	// 断开redis的连接
+	redisClient := datasources.GetRedisClient()
+	redisClient.Close()
 }
