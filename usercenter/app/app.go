@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/codelieche/microservice/usercenter/web/middlewares"
 
@@ -47,6 +48,16 @@ func newApp() *iris.Application {
 	// 设置下sso的域名
 	middlewares.SetSsoServerHost("0.0.0.0:9000")
 	app.Use(middlewares.CtxSetUserMiddleware)
+
+	app.WrapRouter(func(w http.ResponseWriter, r *http.Request, firstNextIsTheRouter http.HandlerFunc) {
+		firstNextIsTheRouter(w, r)
+		//if r.URL.Path == "/api/v1/user/info" {
+		//	w.WriteHeader(403)
+		//	w.Write([]byte("403"))
+		//} else {
+		//	firstNextIsTheRouter(w, r)
+		//}
+	})
 
 	// 处理错误页面
 	handleAppOnError(app)

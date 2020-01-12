@@ -6,6 +6,10 @@ import (
 	"log"
 	"strings"
 
+	"github.com/kataras/iris/v12/mvc"
+
+	"github.com/codelieche/microservice/usercenter/web/middlewares"
+
 	"github.com/codelieche/microservice/usercenter/web/forms"
 	"github.com/go-playground/validator"
 
@@ -24,11 +28,23 @@ type UserController struct {
 	PermissionService services.PermissionService
 }
 
-func (c *UserController) GetBy(idOrName string) (user *datamodels.User, success bool) {
+func (c *UserController) GetBy(idOrName string) mvc.Result {
+
+	if !middlewares.CheckUserPermission(c.Ctx, "1", "can_view_user") {
+		//c.Ctx.StatusCode(403)
+		return mvc.Response{
+			Code: iris.StatusForbidden,
+		}
+	}
 	if user, err := c.Service.GetByIdOrName(idOrName); err != nil {
-		return nil, false
+		return mvc.Response{
+			Code: 400,
+			Err:  err,
+		}
 	} else {
-		return user, true
+		return mvc.Response{
+			Object: user,
+		}
 	}
 }
 
@@ -242,4 +258,59 @@ func (c *UserController) GetPermissions(ctx iris.Context) (permissions []*datamo
 // 获取用户的所有权限
 func (c *UserController) GetByPermissions(id int64) (permissions []*datamodels.Permission, err error) {
 	return c.Service.GetAllPermissionByID(id)
+}
+
+// 检查用户的权限
+func (c *UserController) PostPermissionCheck(ctx iris.Context) {
+	// 定义变量
+	var (
+		userID         int64
+		contentType    string
+		form           *forms.PermissionCheckForm
+		permissionsMap map[string]bool
+		checkKey       string
+		isExist        bool
+		err            error
+	)
+
+	// 获取变量
+	contentType = ctx.Request().Header.Get("Content-Type")
+
+	userID = c.Session.GetInt64Default("userID", 0)
+
+	if userID == 0 {
+		ctx.StatusCode(403)
+		return
+	}
+
+	// 获取提交的表单
+	form = &forms.PermissionCheckForm{}
+	if strings.Contains(contentType, "application/json") {
+		err = ctx.ReadJSON(form)
+	} else {
+		err = ctx.ReadForm(form)
+	}
+
+	if err != nil {
+		ctx.StatusCode(403)
+		return
+	}
+
+	// 检查form
+
+	// 获取用户的权限缓存
+	if permissionsMap, err = c.Service.GetOrSetUserPermissionsCache(userID, false); err != nil {
+		ctx.StatusCode(403)
+		return
+	} else {
+		// 判断权限是否在map中
+		checkKey = fmt.Sprintf("app_%s_%s", form.App, form.Code)
+		if _, isExist = permissionsMap[checkKey]; isExist {
+			ctx.StatusCode(200)
+			return
+		} else {
+			ctx.StatusCode(403)
+			return
+		}
+	}
 }

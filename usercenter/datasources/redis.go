@@ -30,9 +30,9 @@ func connectRedis() {
 
 func GetRedisClient() *redis.Client {
 	if redisClient != nil {
-		if _, err := redisClient.Ping().Result(); err != nil {
-			log.Println("连接redis出错：", err)
-		}
+		//if _, err := redisClient.Ping().Result(); err != nil {
+		//	log.Println("连接redis出错：", err)
+		//}
 		return redisClient
 	} else {
 		connectRedis()
