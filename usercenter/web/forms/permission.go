@@ -7,6 +7,6 @@ type PermissionCreateForm struct {
 }
 
 type PermissionCheckForm struct {
-	App  string `json:"app" validate:"required"`
-	Code string `json:"code" validate:"required"`
+	App   string   `json:"app" validate:"required"`
+	Codes []string `json:"code" validate:"required"`
 }

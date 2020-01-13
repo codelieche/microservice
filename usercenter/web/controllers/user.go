@@ -30,12 +30,15 @@ type UserController struct {
 
 func (c *UserController) GetBy(idOrName string) mvc.Result {
 
-	if !middlewares.CheckUserPermission(c.Ctx, "1", "can_view_user") {
-		//c.Ctx.StatusCode(403)
+	if !middlewares.CheckUserPermissionLocal(c.Ctx, "can_view_user", "can_view_app") {
+		//if !middlewares.PostCheckUserPermission(c.Ctx, "1", "can_view_user") {
+		//if !middlewares.PostCheckUserPermission(c.Ctx, "1", "can_view_user", "can_view_app") {
 		return mvc.Response{
 			Code: iris.StatusForbidden,
 		}
 	}
+
+	//log.Println(c.Ctx.HandlerName())
 	if user, err := c.Service.GetByIdOrName(idOrName); err != nil {
 		return mvc.Response{
 			Code: 400,
@@ -275,6 +278,7 @@ func (c *UserController) PostPermissionCheck(ctx iris.Context) {
 
 	// 获取变量
 	contentType = ctx.Request().Header.Get("Content-Type")
+	log.Println(contentType)
 
 	userID = c.Session.GetInt64Default("userID", 0)
 
@@ -304,13 +308,17 @@ func (c *UserController) PostPermissionCheck(ctx iris.Context) {
 		return
 	} else {
 		// 判断权限是否在map中
-		checkKey = fmt.Sprintf("app_%s_%s", form.App, form.Code)
-		if _, isExist = permissionsMap[checkKey]; isExist {
-			ctx.StatusCode(200)
-			return
-		} else {
-			ctx.StatusCode(403)
-			return
+		for _, code := range form.Codes {
+			checkKey = fmt.Sprintf("app_%s_%s", form.App, code)
+			if _, isExist = permissionsMap[checkKey]; isExist {
+				// 需要检查全部，才返回200的响应
+			} else {
+				ctx.StatusCode(403)
+				return
+			}
 		}
+		// 到这里才返回true
+		ctx.StatusCode(200)
+		return
 	}
 }

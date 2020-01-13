@@ -30,6 +30,10 @@ database:
        - "127.0.0.1:6379"
     password: ""
     db: 0
-
+# 当前app相关的信息，权限控制会用到
+app:
+  id: 1
+  code: usercenter
+  token: "${APP_TOKEN:changeme}"
 # 是否为开发环境
 debug: false

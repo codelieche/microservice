@@ -12,10 +12,17 @@ import (
 
 var config *Config
 
+type AppInfo struct {
+	ID    int    `json:"id" yaml:"id"`
+	Code  string `json:"code" yaml:"code"`
+	Token string `json:"token" yaml:"token"`
+}
+
 // DingDing 项目配置
 type Config struct {
 	Http     *HttpConfig
 	Database *Database
+	App      *AppInfo
 	Debug    bool
 }
 
@@ -139,6 +146,11 @@ func ParseConfig() (err error) {
 				DB:       0,
 			},
 		},
+		App: &AppInfo{
+			ID:    1,
+			Code:  "default",
+			Token: "default",
+		},
 		Debug: false,
 	}
 
@@ -150,6 +162,8 @@ func ParseConfig() (err error) {
 		//log.Println(*config.Http)
 		//log.Println(*config.DingDing)
 		//log.Println(*config.Database)
+
+		// 对app进行校验
 
 		if config.Http.Timeout < 10 {
 			config.Http.Timeout = 30
