@@ -20,10 +20,11 @@ type AppInfo struct {
 
 // DingDing 项目配置
 type Config struct {
-	Http     *HttpConfig
-	Database *Database
-	App      *AppInfo
-	Debug    bool
+	Http      *HttpConfig
+	Database  *Database
+	App       *AppInfo
+	Debug     bool
+	SentryDsn string `json:"sentry_dsn" yaml:"sentry_dsn"`
 }
 
 // Http Config

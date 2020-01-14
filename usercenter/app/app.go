@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
+	sentryiris "github.com/getsentry/sentry-go/iris"
+
 	"github.com/codelieche/microservice/usercenter/web/middlewares"
 
 	"github.com/codelieche/microservice/usercenter/common"
@@ -22,6 +25,22 @@ func newApp() *iris.Application {
 
 	// 配置应用
 	appConfigure(app)
+
+	config := common.GetConfig()
+
+	// 设置sentry收集错误日志，如果配置文件中未设置sentry_dsn就不捕获
+	// DSN: Data Source Name
+	if config.SentryDsn != "" {
+		// 初始化sentry
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn: config.SentryDsn,
+		}); err != nil {
+			fmt.Printf("Sentry initialization failed: %v\n", err)
+		}
+
+		// 捕获panic的中间件
+		app.Use(sentryiris.New(sentryiris.Options{}))
+	}
 
 	// 设置auth
 	//appAddBasictAuth(app)

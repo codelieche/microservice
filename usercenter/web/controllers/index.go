@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"time"
 
 	"github.com/kataras/iris/v12/sessions"
@@ -55,4 +56,10 @@ func (c *IndexController) GetPing(ctx iris.Context) {
 			"session": session.ID(),
 			"message": result,
 		})
+}
+
+// 触发panic，测试Sentry服务是否ok
+func (c *IndexController) GetTestPanic(ctx iris.Context) {
+	panic(errors.New("/test/panic"))
+	ctx.Text("Hello Test Panic")
 }

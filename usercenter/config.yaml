@@ -37,3 +37,4 @@ app:
   token: "${APP_TOKEN:changeme}"
 # 是否为开发环境
 debug: false
+sentry_dsn: "${USERCENTER_SENTRY_DSN}"
