@@ -49,8 +49,10 @@ func initDb() {
 	// 3. Migrate the Schema
 	db.AutoMigrate(&datamodels.User{})
 	db.AutoMigrate(&datamodels.Group{})
+	db.AutoMigrate(&datamodels.Project{})
+	db.AutoMigrate(&datamodels.ProjectUser{})
 	db.AutoMigrate(&datamodels.Role{})
-	db.AutoMigrate(&datamodels.Application{})
+	//db.AutoMigrate(&datamodels.Application{})
 	db.AutoMigrate(&datamodels.Permission{})
 	db.AutoMigrate(&datamodels.Ticket{})
 	db.AutoMigrate(&datamodels.Token{})

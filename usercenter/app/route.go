@@ -120,18 +120,33 @@ func setAppRoute(app *iris.Application) {
 	})
 
 	// Application相关api
-	mvc.Configure(apiV1.Party("/app"), func(app *mvc.Application) {
+	//mvc.Configure(apiV1.Party("/app"), func(app *mvc.Application) {
+	//	// 实例化Application的Repository
+	//	db := datasources.GetDb()
+	//	repo := repositories.NewApplicationRepository(db)
+	//	pRepo := repositories.NewPermissionRepository(db)
+	//	// 实例化Service
+	//	appService := services.NewApplicationService(repo)
+	//	pService := services.NewPermissionService(pRepo)
+	//	// 注册Service
+	//	app.Register(appService, pService, sess.Start)
+	//	// 添加Crontroller
+	//	app.Handle(new(controllers.ApplicationController))
+	//})
+
+	// Project相关api
+	mvc.Configure(apiV1.Party("/project"), func(app *mvc.Application) {
 		// 实例化Application的Repository
 		db := datasources.GetDb()
-		repo := repositories.NewApplicationRepository(db)
+		repo := repositories.NewProjectRepository(db)
 		pRepo := repositories.NewPermissionRepository(db)
 		// 实例化Service
-		appService := services.NewApplicationService(repo)
+		projectService := services.NewProjectService(repo)
 		pService := services.NewPermissionService(pRepo)
 		// 注册Service
-		app.Register(appService, pService, sess.Start)
+		app.Register(projectService, pService, sess.Start)
 		// 添加Crontroller
-		app.Handle(new(controllers.ApplicationController))
+		app.Handle(new(controllers.ProjectController))
 	})
 
 	// 权限相关api
@@ -139,12 +154,12 @@ func setAppRoute(app *iris.Application) {
 		// 实例化Permision的Repository
 		db := datasources.GetDb()
 		repo := repositories.NewPermissionRepository(db)
-		appRepo := repositories.NewApplicationRepository(db)
+		projectRepo := repositories.NewProjectRepository(db)
 		// 实例化Service
 		pService := services.NewPermissionService(repo)
-		appService := services.NewApplicationService(appRepo)
+		projectService := services.NewProjectService(projectRepo)
 		// 注册Service
-		app.Register(pService, appService, sess.Start)
+		app.Register(pService, projectService, sess.Start)
 		// 添加Crontroller
 		app.Handle(new(controllers.PermissionController))
 	})

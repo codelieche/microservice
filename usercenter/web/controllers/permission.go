@@ -11,8 +11,8 @@ import (
 )
 
 type PermissionController struct {
-	Service    services.PermissionService
-	AppService services.ApplicationService
+	Service        services.PermissionService
+	ProjectService services.ProjectService
 }
 
 func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamodels.Permission, err error) {
@@ -37,13 +37,13 @@ func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamod
 
 	// 实例化Permission
 	permission = &datamodels.Permission{
-		Name:  form.Name,
-		Code:  form.Code,
-		AppID: uint(form.AppID),
+		Name:    form.Name,
+		Code:    form.Code,
+		Project: form.Project,
 	}
 	// 判断app_id是否存在
-	if _, err = c.AppService.Get(form.AppID); err != nil {
-		err = fmt.Errorf("应用(id:%d)出错:%s", form.AppID, err)
+	if _, err = c.ProjectService.GetByIdOrCode(form.Project); err != nil {
+		err = fmt.Errorf("应用(id:%s)出错:%s", form.Project, err)
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func (c *PermissionController) PostCreate(ctx iris.Context) (permission *datamod
 func (c *PermissionController) PutBy(id int64, ctx iris.Context) (permission *datamodels.Permission, err error) {
 	// 定义变量
 	var (
-		app         *datamodels.Application
+		project     *datamodels.Project
 		contentType string
 		form        *forms.PermissionCreateForm
 	)
@@ -82,14 +82,13 @@ func (c *PermissionController) PutBy(id int64, ctx iris.Context) (permission *da
 		return nil, err
 	}
 
-	// 判断app_id是否存在
-	if app, err = c.AppService.Get(form.AppID); err != nil {
-		err = fmt.Errorf("获取应用(id:%d)出错:%s", form.AppID, err)
+	// 判断project是否存在
+	if project, err = c.ProjectService.GetByIdOrCode(form.Project); err != nil {
+		err = fmt.Errorf("获取项目(code:%s)出错:%s", form.Project, err)
 		return nil, err
 	}
 
-	permission.Application = app
-	permission.AppID = uint(form.AppID)
+	permission.Project = project.Code
 	permission.Code = form.Code
 	permission.Name = form.Name
 
@@ -109,8 +108,8 @@ func (c *PermissionController) GetBy(id int64) (permission *datamodels.Permissio
 	}
 }
 
-func (c *PermissionController) GetByBy(appID int, code string) (permission *datamodels.Permission, success bool) {
-	if permission, err := c.Service.GetByAppIDAndCode(appID, code); err != nil {
+func (c *PermissionController) GetByBy(project string, code string) (permission *datamodels.Permission, success bool) {
+	if permission, err := c.Service.GetByProjectAndCode(project, code); err != nil {
 		return nil, false
 	} else {
 		return permission, true

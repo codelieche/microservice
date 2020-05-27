@@ -10,7 +10,7 @@ type PermissionService interface {
 	Create(permission *datamodels.Permission) (*datamodels.Permission, error)
 	Save(permission *datamodels.Permission) (*datamodels.Permission, error)
 	GetById(id int64) (permission *datamodels.Permission, err error)
-	GetByAppIDAndCode(appID int, code string) (permission *datamodels.Permission, err error)
+	GetByProjectAndCode(project string, code string) (permission *datamodels.Permission, err error)
 	List(offset int, limit int) (permissions []*datamodels.Permission, err error)
 }
 
@@ -36,8 +36,8 @@ func (s *permissionService) GetById(id int64) (permission *datamodels.Permission
 	return s.repo.Get(id)
 }
 
-func (s *permissionService) GetByAppIDAndCode(appID int, code string) (permission *datamodels.Permission, err error) {
-	return s.repo.GetByAppIDAndCode(appID, code)
+func (s *permissionService) GetByProjectAndCode(project string, code string) (permission *datamodels.Permission, err error) {
+	return s.repo.GetByProjectAndCode(project, code)
 }
 
 func (s *permissionService) List(offset int, limit int) (permissions []*datamodels.Permission, err error) {

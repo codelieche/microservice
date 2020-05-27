@@ -394,7 +394,8 @@ func (r *userRepository) GetOrSetUserPermissionsCache(id int64, isSet bool) (per
 	// 3. 生成permissionsMap
 	//遍历permissions
 	for _, permission = range permissions {
-		key = fmt.Sprintf("app_%d_%s", permission.AppID, permission.Code)
+		//key = fmt.Sprintf("app_%d_%s", permission.AppID, permission.Code)
+		key = fmt.Sprintf("%s_%s", permission.Project, permission.Code)
 		permissionsMap[key] = true
 	}
 

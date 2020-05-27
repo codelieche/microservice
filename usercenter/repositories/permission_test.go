@@ -24,9 +24,9 @@ func TestPermissionRepository_Save(t *testing.T) {
 		name := fmt.Sprintf("Permission:%d", i)
 		code := fmt.Sprintf("code_%d", i)
 		permission := &datamodels.Permission{
-			Name:  name,
-			AppID: 1,
-			Code:  code,
+			Name:    name,
+			Project: "devops",
+			Code:    code,
 		}
 		if g, err := r.Save(permission); err != nil {
 			log.Println(err.Error())
@@ -65,7 +65,7 @@ func TestPermissionRepository_List(t *testing.T) {
 	}
 }
 
-func TestPermissionRepository_GetByAppIDAndCode(t *testing.T) {
+func TestPermissionRepository_GetByProjectAndCode(t *testing.T) {
 	// 1. get db
 	db := datasources.GetDb()
 
@@ -73,13 +73,13 @@ func TestPermissionRepository_GetByAppIDAndCode(t *testing.T) {
 	r := NewPermissionRepository(db)
 
 	// 3. get permission
-	appID := 1
+	projectCode := "devops"
 	code := "code_2"
-	if permission, err := r.GetByAppIDAndCode(appID, code); err != nil {
+	if permission, err := r.GetByProjectAndCode(projectCode, code); err != nil {
 		t.Error(err.Error())
 	} else {
 		// 4. print permission info
-		log.Println(permission.Name, permission.Code, permission.AppID, permission.Application)
+		log.Println(permission.Name, permission.Code, permission.Project)
 	}
 }
 
@@ -97,7 +97,7 @@ func TestPermissionRepository_GetAllUsersPermissions(t *testing.T) {
 		t.Error(err)
 	} else {
 		for _, permission := range permissions {
-			log.Println(permission.ID, permission.Name, permission.AppID, permission.Code)
+			log.Println(permission.ID, permission.Name, permission.Project, permission.Code)
 		}
 	}
 }

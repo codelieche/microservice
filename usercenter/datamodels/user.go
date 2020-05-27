@@ -12,7 +12,7 @@ type User struct {
 	//gorm.Model
 	BaseFields
 	Username    string        `gorm:"type:varchar(40);NOT NULL;UNIQUE_INDEX" json:"username"`  // 用户名
-	Password    string        `gorm:"type:varchar(256);NULL" json:"password"`                  // 用户密码
+	Password    string        `gorm:"type:varchar(256);NULL" json:"-"`                         // 用户密码
 	Mobile      string        `gorm:"size:100" json:"mobile"`                                  // 用户手机号
 	Email       string        `gorm:"size:100" json:"email"`                                   // 用户邮箱
 	IsSuperuser bool          `gorm:"type:boolean" json:"is_superuser"`                        // 是否是超级用户
