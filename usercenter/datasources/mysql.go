@@ -54,6 +54,9 @@ func initDb() {
 	db.AutoMigrate(&datamodels.Role{})
 	//db.AutoMigrate(&datamodels.Application{})
 	db.AutoMigrate(&datamodels.Permission{})
+
+	db.AutoMigrate(&datamodels.Menu{})
+
 	db.AutoMigrate(&datamodels.Ticket{})
 	db.AutoMigrate(&datamodels.Token{})
 
