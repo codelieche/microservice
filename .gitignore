@@ -4,8 +4,9 @@
 *.css.map
 .idea
 tmp/
-/pkg
 .vscode/
 
+logs/
+go.mod
 go.sum
 
