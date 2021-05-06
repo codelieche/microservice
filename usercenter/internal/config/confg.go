@@ -1,0 +1,101 @@
+package config
+
+import (
+	"github.com/codelieche/microservice/codelieche/utils"
+	"github.com/spf13/viper"
+	"log"
+)
+
+type GlobalConfig struct {
+	Web   *Web   // web api相关的配置
+	MySQL *MySQL // 数据库的配置
+	Redis *Redis // Redis相关的配置
+}
+
+var Config *GlobalConfig
+
+func parseConfig() {
+	// 配置默认的值
+	defaultConfigValue := map[string]interface{}{
+		"web.address": "0.0.0.0",
+		"port":        8080,
+
+		"mysql.host":     "127.0.0.1",
+		"mysql.port":     3306,
+		"mysql.database": "usercenter",
+		"charset":        "utf8mb4",
+
+		"redis.host": "127.0.0.1",
+		"redis.port": 6379,
+		"redis.db":   1,
+	}
+
+	// 配置默认的值
+	utils.ConfigSetDefault(defaultConfigValue)
+
+	// 调用处理配置的逻辑
+	if err := utils.ConfigParse(); err != nil {
+		log.Printf("解析配置文件出错：%s", err.Error())
+		return
+	}
+
+	// 处理配置
+	web := &Web{
+		Address: viper.GetString("web.address"),
+		Port:    viper.GetInt("web.port"),
+	}
+
+	if web.Port <= 0 {
+		web.Port = 8080
+	}
+
+	mysql := &MySQL{
+		Host:     viper.GetString("mysql.host"),
+		Port:     viper.GetInt("mysql.port"),
+		Database: viper.GetString("mysql.database"),
+		Charset:  viper.GetString("mysql.charset"),
+		User:     viper.GetString("mysql.user"),
+		Password: viper.GetString("mysql.password"),
+	}
+	if mysql.Port <= 0 {
+		mysql.Port = 3306
+	}
+	if mysql.Charset == "" {
+		mysql.Charset = "utf8mb4"
+	}
+
+	redis := &Redis{
+		Host:     viper.GetString("redis.host"),
+		Port:     viper.GetInt("redis.port"),
+		Db:       viper.GetInt("redis.db"),
+		Password: viper.GetString("mysql.password"),
+	}
+
+	if redis.Port <= 0 {
+		redis.Port = 6379
+	}
+
+	Config = &GlobalConfig{
+		Web:   web,
+		MySQL: mysql,
+		Redis: redis,
+	}
+}
+
+func GetConfig() *GlobalConfig {
+	if Config != nil {
+		return Config
+	} else {
+		parseConfig()
+		if Config != nil {
+			return Config
+		} else {
+			return nil
+		}
+	}
+}
+
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	parseConfig()
+}
