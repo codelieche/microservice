@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"strings"
+	"sync"
 )
 
 type UserController struct {
@@ -162,7 +163,61 @@ func (controller *UserController) Auth(c *gin.Context) {
 		controller.HandleError(c, err)
 		return
 	} else {
-		controller.HandleOK(c, claims)
+		//controller.HandleOK(c, claims)
+		// 获取用户
+		if user, err := controller.service.FindByUsername(c.Request.Context(), claims.Username); err != nil {
+			controller.HandleError(c, err)
+			return
+		} else {
+			if user.IsActive {
+				controller.HandleOK(c, user)
+			} else {
+				err = errors.New("用户已被禁用")
+				controller.HandleError(c, err)
+			}
+		}
+	}
+}
+
+func (controller *UserController) List(c *gin.Context) {
+	// 1. 获取分页
+	pagination := controller.ParsePagination(c)
+
+	// 2. 开始获取数据
+	offset := pagination.PageSize * (pagination.Page - 1)
+	ctx := c.Request.Context()
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	var users []*core.User
+	var err error
+	var count int64
+
+	// 协程1：获取用户列表
+	go func() {
+		defer wg.Done()
+		users, err = controller.service.List(ctx, offset, pagination.PageSize)
+	}()
+	// 协程2：获取用户数量
+	go func() {
+		// 获取用户数
+		defer wg.Done()
+		count, err = controller.service.Count(ctx)
+	}()
+	// 等待2个协程完成
+	wg.Wait()
+
+	// 3. 处理结果
+	if err != nil {
+		controller.HandleError(c, err)
+		return
+	} else {
+		r := core.ResponseList{
+			CurrentPage: pagination.Page,
+			Count:       count,
+			Results:     users,
+		}
+		controller.HandleOK(c, r)
 		return
 	}
 }

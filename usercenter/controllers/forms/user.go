@@ -26,3 +26,9 @@ func (form *UserCreateForm) Validate() error {
 	// 3. 如果未配置Nickname那么就让其等于username
 	return err
 }
+
+type UserLoginForm struct {
+	Username string `json:"username" form:"username"` // 用户名
+	Password string `json:"password" form:"password"` // 密码
+	Category string `json:"category" form:"category"` // 登录方式
+}

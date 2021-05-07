@@ -43,6 +43,9 @@ type (
 		// SigningToken 给用户签发Token
 		SigningToken(ctx context.Context, user *User) (signingStr string, err error)
 
+		// List 获取用户列表
+		List(ctx context.Context, offset int, limit int) (users []*User, err error)
+
 		// Update persists an updated user to the database
 		Update(context.Context, *User) error
 
@@ -72,6 +75,12 @@ type (
 		SigningToken(ctx context.Context, user *User) (signingStr string, err error)
 		// ParseToken 解析token
 		ParseToken(ctx context.Context, tokenStr string) (claims *UserClaims, err error)
+
+		//	List 获取用户列表
+		List(ctx context.Context, offset int, limit int) (users []*User, err error)
+
+		// Count returns 用户的数量
+		Count(context.Context) (int64, error)
 	}
 )
 

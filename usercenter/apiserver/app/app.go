@@ -19,8 +19,9 @@ func NewApp() *App {
 
 func (app *App) Run() {
 	// 1. 实例化 gin Engine
-	engin := gin.New()
-	app.Engine = engin
+	engine := gin.New()
+	engine.Use(gin.Logger(), gin.Recovery())
+	app.Engine = engine
 
 	// 2. Auto Migrate
 	app.autoMigrate()

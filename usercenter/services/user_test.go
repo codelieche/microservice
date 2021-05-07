@@ -5,6 +5,7 @@ import (
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/codelieche/microservice/usercenter/store"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -91,6 +92,48 @@ func Test_userService_Find(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Find() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_userService_List(t *testing.T) {
+	db := store.GetMySQLDB(config.Config)
+	userStore := store.NewUserStore(db)
+
+	type args struct {
+		ctx    context.Context
+		offset int
+		limit  int
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantUsers []*core.User
+		wantErr   bool
+	}{
+		{
+			name: "获取用户",
+			args: args{
+				ctx:    context.Background(),
+				offset: 5,
+				limit:  5,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &userService{
+				store: userStore,
+			}
+			gotUsers, err := s.List(tt.args.ctx, tt.args.offset, tt.args.limit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			for i, user := range gotUsers {
+				log.Printf("%d\t %v:%v", i, user.ID, user.Username)
 			}
 		})
 	}

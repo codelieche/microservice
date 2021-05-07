@@ -16,6 +16,11 @@ var Config *GlobalConfig
 
 var JwtTokenHeaderPrefix = "Bearer"
 
+var JwtAuthBlackUrlPathMap = map[string]bool{
+	"/api/v1/user/login/":  true,
+	"/api/v1/user/create/": true,
+}
+
 func parseConfig() {
 	// 配置默认的值
 	defaultConfigValue := map[string]interface{}{
