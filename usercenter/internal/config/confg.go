@@ -9,16 +9,21 @@ import (
 type GlobalConfig struct {
 	Web   *Web   // web api相关的配置
 	MySQL *MySQL // 数据库的配置
-	Redis *Redis // Redis相关的配置
+	Redis *Redis // Redis相关的配
 }
 
 var Config *GlobalConfig
 
+var JwtTokenHeaderPrefix = "Bearer"
+
 func parseConfig() {
 	// 配置默认的值
 	defaultConfigValue := map[string]interface{}{
-		"web.address": "0.0.0.0",
-		"port":        8080,
+		"web.address":      "0.0.0.0",
+		"web.port":         8080,
+		"web.jwt.duration": 3600 * 12,
+		"web.jwt.key":      "codelieche",
+		"web.jwt.issuer":   "codelieche",
 
 		"mysql.host":     "127.0.0.1",
 		"mysql.port":     3306,
@@ -40,9 +45,25 @@ func parseConfig() {
 	}
 
 	// 处理配置
+	jwt := &JWT{
+		Key:      viper.GetString("web.jwt.key"),
+		Duration: viper.GetInt("web.jwt.duration"),
+		Issuer:   viper.GetString("web.jwt.issuer"),
+	}
+	if jwt.Duration <= 0 {
+		jwt.Duration = 3600 * 12
+	}
+	if jwt.Key == "" {
+		jwt.Key = "codelieche"
+	}
+	if jwt.Issuer == "" {
+		jwt.Issuer = "codelieche"
+	}
+
 	web := &Web{
 		Address: viper.GetString("web.address"),
 		Port:    viper.GetInt("web.port"),
+		JWT:     jwt,
 	}
 
 	if web.Port <= 0 {

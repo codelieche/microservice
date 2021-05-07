@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codelieche/microservice/codelieche/utils"
+	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 	"log"
 	"regexp"
@@ -33,8 +34,14 @@ type (
 		//	FindByUsername returns a user from the database by username
 		FindByUsername(context.Context, string) (*User, error)
 
+		// FindByIdOrUsername return a user from the database by id or username
+		FindByIdOrUsername(context.Context, string) (*User, error)
+
 		// Create persists a new user to the database
 		Create(context.Context, *User) (*User, error)
+
+		// SigningToken 给用户签发Token
+		SigningToken(ctx context.Context, user *User) (signingStr string, err error)
 
 		// Update persists an updated user to the database
 		Update(context.Context, *User) error
@@ -53,9 +60,18 @@ type (
 	UserService interface {
 		// Find 查找用户
 		Find(context.Context, int64) (*User, error)
+		// FindByUsername 查找用户通过用户名
+		FindByUsername(context.Context, string) (*User, error)
+		// FindByIdOrUsername 根据id或者用户名查找
+		FindByIdOrUsername(context.Context, string) (*User, error)
 
 		// Create 创建用户
 		Create(context.Context, *User) (*User, error)
+
+		// SigningToken 给用户签发Token
+		SigningToken(ctx context.Context, user *User) (signingStr string, err error)
+		// ParseToken 解析token
+		ParseToken(ctx context.Context, tokenStr string) (claims *UserClaims, err error)
 	}
 )
 
@@ -68,6 +84,11 @@ func (u *User) ValidateUsername() (bool, error) {
 		err := fmt.Errorf("用户名需要是字母开头，由小写字母/-/数字组成，长度6-60")
 		return false, err
 	}
+}
+
+// CheckPassword  检查用户的密码
+func (u *User) CheckPassword(pwd string) (bool, error) {
+	return utils.CheckHashedPassword(u.Password, pwd)
 }
 
 // BeforeCreate 创建用户之前先检查用户是否已经存在
@@ -141,4 +162,10 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 		u.Nickname = u.Username
 	}
 	return nil
+}
+
+type UserClaims struct {
+	UserID   int64  `json:"user_id"`
+	Username string `json:"username"`
+	jwt.RegisteredClaims
 }
