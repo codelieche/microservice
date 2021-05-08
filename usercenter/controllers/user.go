@@ -221,3 +221,105 @@ func (controller *UserController) List(c *gin.Context) {
 		return
 	}
 }
+
+func (controller *UserController) ChangePassword(c *gin.Context) {
+	// 1. 获取表单
+	var form forms.UserChangePasswordForm
+	if err := c.ShouldBind(&form); err != nil {
+		controller.HandleError(c, err)
+		return
+	}
+
+	// 2. 开始校验密码
+	// 2-1: 校验用户名
+	var username string
+	if u, exist := c.Get("username"); exist {
+		if v, ok := u.(string); ok {
+			username = v
+		}
+	}
+	if username == "" {
+		err := errors.New("请传入用户名")
+		controller.HandleError(c, err)
+		return
+	} else {
+		// 只可修改自己的密码
+		if username != form.Username {
+			err := errors.New("只可修改自己的密码")
+			controller.HandleError(c, err)
+			return
+		}
+	}
+
+	// 2-2: 校验数据，老的密码
+	if err := form.Validate(false); err != nil {
+		controller.HandleError(c, err)
+		return
+	}
+
+	if user, err := controller.service.FindByUsername(c.Request.Context(), form.Username); err != nil {
+		controller.HandleError(c, err)
+		return
+	} else {
+		if ok, err := user.CheckPassword(form.OldPassword); err != nil || !ok {
+			err := errors.New("原来的密码不正确")
+			controller.HandleError(c, err)
+			return
+		}
+
+		//	开始修改密码
+		if err := controller.service.SetPassword(c.Request.Context(), user, form.Password); err != nil {
+			controller.HandleError(c, err)
+			return
+		} else {
+			// 密码修改成功
+			controller.HandleOK(c, "密码修改成功")
+			return
+		}
+
+	}
+}
+
+func (controller *UserController) ResetPassword(c *gin.Context) {
+	// 1. 获取表单
+	var form forms.UserChangePasswordForm
+	if err := c.ShouldBind(&form); err != nil {
+		controller.HandleError(c, err)
+		return
+	}
+
+	// 2. 开始校验密码
+	// 2-1: 校验用户名
+	username := form.Username
+	if username == "" {
+		err := errors.New("请传入用户名")
+		controller.HandleError(c, err)
+		return
+	} else {
+		// 只有管理员才可设置密码
+		// 判断一下当前用户是否是管理员
+	}
+
+	// 2-2: 校验数据，老的密码
+	if err := form.Validate(true); err != nil {
+		controller.HandleError(c, err)
+		return
+	}
+
+	if user, err := controller.service.FindByUsername(c.Request.Context(), form.Username); err != nil {
+		controller.HandleError(c, err)
+		return
+	} else {
+		//	开始修改密码
+		if err := controller.service.SetPassword(c.Request.Context(), user, form.Password); err != nil {
+			controller.HandleError(c, err)
+			return
+		} else {
+			// 密码修改成功
+			msg := fmt.Sprintf("重置%s修改成功", username)
+			controller.HandleOK(c, msg)
+			return
+		}
+
+	}
+}

@@ -46,6 +46,9 @@ type (
 		// List 获取用户列表
 		List(ctx context.Context, offset int, limit int) (users []*User, err error)
 
+		// SetPassword set user password
+		SetPassword(ctx context.Context, user *User, password string) error
+
 		// Update persists an updated user to the database
 		Update(context.Context, *User) error
 
@@ -78,6 +81,9 @@ type (
 
 		//	List 获取用户列表
 		List(ctx context.Context, offset int, limit int) (users []*User, err error)
+
+		// SetPassword set user password
+		SetPassword(ctx context.Context, user *User, password string) error
 
 		// Count returns 用户的数量
 		Count(context.Context) (int64, error)

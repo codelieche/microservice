@@ -67,3 +67,7 @@ func (s *userService) List(ctx context.Context, offset int, limit int) (users []
 func (s *userService) Count(ctx context.Context) (int64, error) {
 	return s.store.Count(ctx)
 }
+
+func (s *userService) SetPassword(ctx context.Context, user *core.User, password string) error {
+	return s.store.SetPassword(ctx, user, password)
+}

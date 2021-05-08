@@ -23,4 +23,8 @@ func injectUserRoute(api *gin.RouterGroup) {
 	api.GET("/user/", userController.List)
 	// 用户信息
 	api.GET("/user/:id/info/", userController.Find)
+	// 修改密码
+	api.POST("/user/password/change/", userController.ChangePassword)
+	// 重置密码
+	api.POST("/user/password/reset/", userController.ResetPassword)
 }

@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"github.com/codelieche/microservice/codelieche/utils"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -110,6 +111,31 @@ func (u *userStore) List(ctx context.Context, offset int, limit int) (users []*c
 		return nil, query.Error
 	} else {
 		return users, nil
+	}
+}
+
+func (u *userStore) SetPassword(ctx context.Context, user *core.User, password string) error {
+	if user.ID <= 0 || user.Username == "" {
+		err := errors.New("传入的用户有误")
+		return err
+	}
+	if !user.IsActive {
+		err := errors.New("用户已经被禁用")
+		return err
+	}
+	// 开始设置密码
+	if hashedPassword, err := utils.HashPassword(password); err != nil {
+		return err
+	} else {
+		user.Password = hashedPassword
+		//	保存密码
+		if err := u.db.Model(user).Where("id=?", user.ID).Limit(1).
+			Update("password", user.Password).Error; err != nil {
+			return err
+		} else {
+			// 修改密码之后应该把老的token过期一下
+			return nil
+		}
 	}
 }
 
