@@ -8,6 +8,7 @@ import (
 
 type GlobalConfig struct {
 	Web   *Web   // web api相关的配置
+	Rpc   *Rpc   // rpc server相关的配置
 	MySQL *MySQL // 数据库的配置
 	Redis *Redis // Redis相关的配
 }
@@ -29,6 +30,9 @@ func parseConfig() {
 		"web.jwt.duration": 3600 * 12,
 		"web.jwt.key":      "codelieche",
 		"web.jwt.issuer":   "codelieche",
+
+		"rpc.address": "0.0.0.0",
+		"rpc.port":    "8081",
 
 		"mysql.host":     "127.0.0.1",
 		"mysql.port":     3306,
@@ -75,6 +79,15 @@ func parseConfig() {
 		web.Port = 8080
 	}
 
+	// 处理rpc的配置
+	rpc := &Rpc{
+		Address: viper.GetString("rpc.address"),
+		Port:    viper.GetInt("rpc.port"),
+	}
+	if rpc.Port <= 0 {
+		rpc.Port = 8081
+	}
+
 	mysql := &MySQL{
 		Host:     viper.GetString("mysql.host"),
 		Port:     viper.GetInt("mysql.port"),
@@ -103,6 +116,7 @@ func parseConfig() {
 
 	Config = &GlobalConfig{
 		Web:   web,
+		Rpc:   rpc,
 		MySQL: mysql,
 		Redis: redis,
 	}
