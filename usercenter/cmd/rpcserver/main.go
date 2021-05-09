@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/codelieche/microservice/usercenter/internal/datasources"
@@ -8,9 +9,11 @@ import (
 	"github.com/codelieche/microservice/usercenter/rpcserver/userservice"
 	"github.com/codelieche/microservice/usercenter/services"
 	"github.com/codelieche/microservice/usercenter/store"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
 )
 
 func main() {
@@ -36,10 +39,45 @@ func main() {
 	s := grpc.NewServer()
 	userpb.RegisterUserServiceServer(s, userRpcService)
 
+	// 启动grpc gateway server
+	go startGRPCGateway()
+
 	log.Println("start grpc server")
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Printf("Done")
+	}
+}
+
+// startGRPCGateway 启动grpc gateway
+func startGRPCGateway() {
+	// recover error
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("recover error: %v\n", r)
+		}
+	}()
+
+	// 1. 准备ctx
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+
+	// 2. mux
+	mux := runtime.NewServeMux()
+
+	// 3. RegisterUserServiceHandlerFromEndpoint
+	cfg := config.Config.Rpc
+	addr := fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+
+	if err := userpb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, addr, opts); err != nil {
+		log.Fatalf("cannot start grpc gateway: %v", err)
+	}
+
+	// 4. start http server
+	addr2 := fmt.Sprintf("%s:%d", cfg.Address, cfg.Port+1)
+	if err := http.ListenAndServe(addr2, mux); err != nil {
+		log.Fatalf("cannot listen and server: %v", err)
 	}
 }

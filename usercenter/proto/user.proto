@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package usercenter;
+option go_package="proto/userpb;userpb";
+
+message User {
+  int64 id = 1;
+  string username = 2;
+  string nickname = 3;
+  string email = 4;
+  string photo = 5;
+  bool is_superuser = 6;
+  bool is_active = 7;
+}
+
+// 获取用户信息的请求
+message GetUserRequest {
+  int64 id = 1;        // 用户ID
+  string username = 2; // 用户名
+}
+
+// 登录请求
+message LoginRequest {
+  string username = 1;  // 用户名
+  string password = 2;  // 用户密码
+  string category = 3;  // 登录类型
+}
+
+// 登录响应
+message LoginResponse {
+  string token = 1;  // 登录成功的token
+  User userinfo = 2; // 用户的信息
+}
+
+// 用户服务
+service UserService {
+  // 获取用户详情的RPC
+  rpc GetUser(GetUserRequest) returns (User);
+}

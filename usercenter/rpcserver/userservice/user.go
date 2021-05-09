@@ -35,7 +35,7 @@ func (s *UserService) GetUser(ctx context.Context, in *userpb.GetUserRequest) (*
 
 	log.Println("user info ====>:", user)
 
-	if user.ID > 0 && user.Username != "" {
+	if user != nil && user.ID > 0 && user.Username != "" {
 		u = &userpb.User{
 			Id:       int64(user.ID),
 			Username: user.Username,
@@ -43,6 +43,8 @@ func (s *UserService) GetUser(ctx context.Context, in *userpb.GetUserRequest) (*
 			Email:    user.Email,
 			Photo:    user.Phone,
 		}
+	} else {
+		log.Printf("获取到的用户有误：%v", user)
 	}
 
 	return u, err

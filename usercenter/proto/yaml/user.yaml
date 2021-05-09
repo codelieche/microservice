@@ -1,0 +1,9 @@
+type: google.api.Service
+config_version: 3
+
+http:
+  rules:
+    - selector: usercenter.UserService.GetUser
+      get: /user/{id}
+    - selector: usercenter.UserService.GetUser
+      get: /user/{username}/info
