@@ -64,6 +64,8 @@ type (
 
 	// UserService 用户服务接口
 	UserService interface {
+		// Login 用户登录
+		Login(ctx context.Context, username string, password string, category string) (token string, err error)
 		// Find 查找用户
 		Find(context.Context, int64) (*User, error)
 		// FindByUsername 查找用户通过用户名

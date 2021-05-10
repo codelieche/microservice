@@ -6,10 +6,12 @@ import (
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/codelieche/microservice/usercenter/internal/datasources"
 	"github.com/codelieche/microservice/usercenter/proto/userpb"
+	"github.com/codelieche/microservice/usercenter/rpcserver/interceptors"
 	"github.com/codelieche/microservice/usercenter/rpcserver/userservice"
 	"github.com/codelieche/microservice/usercenter/services"
 	"github.com/codelieche/microservice/usercenter/store"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -20,12 +22,19 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("rpc server")
 
+	logger, err := zap.NewProduction()
+	defer logger.Sync()
+
+	if err != nil {
+		log.Fatalf("Can not create logger: %s", err.Error())
+	}
+
 	db := datasources.GetMySQLDB()
 	userStore := store.NewUserStore(db)
 
 	usv := services.NewUserService(userStore)
 
-	userRpcService := userservice.NewUserService(usv)
+	userRpcService := userservice.NewUserService(usv, logger)
 	log.Println(userRpcService)
 
 	cfg := config.Config.Rpc
@@ -36,7 +45,10 @@ func main() {
 		return
 	}
 
-	s := grpc.NewServer()
+	// 注册rpc服务:
+	// 实例化拦截器
+	in := interceptors.NewAuthInterceptor()
+	s := grpc.NewServer(grpc.UnaryInterceptor(in))
 	userpb.RegisterUserServiceServer(s, userRpcService)
 
 	// 启动grpc gateway server
@@ -64,7 +76,9 @@ func startGRPCGateway() {
 	defer cancelFunc()
 
 	// 2. mux
-	mux := runtime.NewServeMux()
+	mux := runtime.NewServeMux(runtime.WithMarshalerOption(
+		runtime.MIMEWildcard, &runtime.JSONPb{},
+	))
 
 	// 3. RegisterUserServiceHandlerFromEndpoint
 	cfg := config.Config.Rpc
@@ -78,6 +92,6 @@ func startGRPCGateway() {
 	// 4. start http server
 	addr2 := fmt.Sprintf("%s:%d", cfg.Address, cfg.Port+1)
 	if err := http.ListenAndServe(addr2, mux); err != nil {
-		log.Fatalf("cannot listen and server: %v", err)
+		log.Fatalf("Cannot listen and server: %v", err)
 	}
 }

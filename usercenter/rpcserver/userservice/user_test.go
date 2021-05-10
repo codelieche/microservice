@@ -5,6 +5,7 @@ import (
 	"github.com/codelieche/microservice/usercenter/proto/userpb"
 	"github.com/codelieche/microservice/usercenter/services"
 	"github.com/codelieche/microservice/usercenter/store"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -15,9 +16,11 @@ func TestUserService_RunServer(t *testing.T) {
 	db := datasources.GetMySQLDB()
 	userStore := store.NewUserStore(db)
 
+	logger, _ := zap.NewDevelopment()
+
 	userService := services.NewUserService(userStore)
 
-	userRpcService := NewUserService(userService)
+	userRpcService := NewUserService(userService, logger)
 	log.Println(userRpcService)
 
 	lis, err := net.Listen("tcp", "0:8081")

@@ -1,7 +1,8 @@
 syntax = "proto3";
+import "google/protobuf/any.proto";
 
 package usercenter;
-option go_package="proto/userpb;userpb";
+option go_package="github.com/codelieche/microservice/usercenter/  proto/userpb;userpb";
 
 message User {
   int64 id = 1;
@@ -32,8 +33,29 @@ message LoginResponse {
   User userinfo = 2; // 用户的信息
 }
 
+// 列表请求
+message ListRequest {
+  uint64 page = 1;       // 页码
+  uint64 page_size = 2;  // 页码数量
+  string search = 3;     // 搜索字段
+  string ordering = 4;   // 排序
+
+}
+
+// 列表结果
+message ListResponse {
+  uint64 count = 1;   // 总共的数量
+  repeated google.protobuf.Any results = 2; // 返回的结果
+}
+
 // 用户服务
 service UserService {
+  // 用户登录
+  rpc Login(LoginRequest) returns(LoginResponse);
+
   // 获取用户详情的RPC
   rpc GetUser(GetUserRequest) returns (User);
+
+  // 获取用户列表
+  rpc ListUser(ListRequest) returns(ListResponse);
 }

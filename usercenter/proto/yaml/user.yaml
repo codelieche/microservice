@@ -4,6 +4,11 @@ config_version: 3
 http:
   rules:
     - selector: usercenter.UserService.GetUser
-      get: /user/{id}
+      get: /v1/user/{id}
     - selector: usercenter.UserService.GetUser
-      get: /user/{username}/info
+      get: /v1/user/{username}/info
+    - selector: usercenter.UserService.Login
+      post: /v1/user/login
+      body: "*"
+    - selector: usercenter.UserService.ListUser
+      get: /v1/user/list

@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -13,6 +15,39 @@ func NewUserService(store core.UserStore) core.UserService {
 
 type userService struct {
 	store core.UserStore
+}
+
+func (s *userService) Login(ctx context.Context, username string, password string, category string) (token string, err error) {
+	//	1：获取用户
+	if username == "" || password == "" {
+		err = errors.New("输入的用户名或密码不合法")
+		return "", err
+	}
+	if category != "" && category != "username" {
+		err = errors.New("暂时只支持通过用户名登录")
+		return "", err
+	}
+
+	user, err := s.FindByUsername(ctx, username)
+	if err != nil {
+		if err == core.ErrNotFound {
+			err = fmt.Errorf("用户不存在")
+		}
+		return "", err
+	}
+
+	// 2：检查用户密码是否正确
+	if ok, err := user.CheckPassword(password); err != nil || !ok {
+		err = fmt.Errorf("用户名或者密码错误")
+		return "", err
+	}
+
+	//	3. 返回JWT Token
+	if token, err := s.SigningToken(ctx, user); err != nil {
+		return "", err
+	} else {
+		return token, err
+	}
 }
 
 func (s *userService) Find(ctx context.Context, i int64) (*core.User, error) {
