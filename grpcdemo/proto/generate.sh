@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # 生成的代码存放目录
-TARGET_DIR=userpb
-cd ../../proto/
+TARGET_DIR=pb
 
 if [[ $PWD =~ "proto" ]]
 then
@@ -30,7 +29,7 @@ function generate() {
     echo "`date '+%F %T'`: 开始处理${FILE}.proto: (${FILE}, gateway ${GATEWAY})"
 
     # 2. 生成grpc proto相关代码
-    protoc -I=. --go_out=paths=source_relative:userpb \
+    protoc -I=. --go_out=paths=source_relative:${TARGET_DIR} \
          --go-grpc_out=require_unimplemented_servers=false:${TARGET_DIR} --go-grpc_opt=paths=source_relative \
         ./${FILE}.proto
 
@@ -42,5 +41,5 @@ function generate() {
 
 }
 
-# 处理user.proto文件
-generate user true
+# 处理hello.proto文件
+generate hello true

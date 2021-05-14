@@ -1,0 +1,10 @@
+type: google.api.Service
+config_version: 3
+
+http:
+  rules:
+    - selector: tutorial.Greeter.SayHello
+      post: /v1/hello/sayhello
+      body: "*"
+    - selector: tutorial.Greeter.SayHello
+      get: /v1/hello/sayhello

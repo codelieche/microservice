@@ -93,15 +93,14 @@ func (s *UserService) GetUser(ctx context.Context, in *userpb.GetUserRequest) (*
 func (s *UserService) ListUser(ctx context.Context, request *userpb.ListRequest) (*userpb.ListResponse, error) {
 
 	//users, err := s.service.List(ctx, int(request.Page), int(request.PageSize))
-	log.Println(request.Page, request.PageSize)
 	if request.PageSize <= 0 {
 		request.PageSize = 10
 	}
 	users, err := s.service.List(ctx, int(request.Page), 10)
+	count, err := s.service.Count(ctx)
+
 	if err != nil {
 		return nil, err
-	} else {
-		log.Println(users)
 	}
 
 	var results []*anypb.Any
@@ -121,7 +120,7 @@ func (s *UserService) ListUser(ctx context.Context, request *userpb.ListRequest)
 	}
 
 	return &userpb.ListResponse{
-		Count:   123,
+		Count:   count,
 		Results: results,
 	}, nil
 }
