@@ -36,7 +36,9 @@ func main() {
 		helloService := server.NewHelloService(logger)
 		pb.RegisterGreeterServer(s, helloService)
 
-		// 2. stream service
+		// 2. news store service
+		newsStoreService := server.NewNewsStoreService(logger)
+		pb.RegisterNewsStoreServer(s, newsStoreService)
 	}
 
 	// 3. 实例化gGRPC server config
@@ -55,5 +57,4 @@ func main() {
 	if err := rpctools.RunGRPCServer(grpcCfg); err != nil {
 		log.Fatalf("grpc server run error:%v", err)
 	}
-
 }

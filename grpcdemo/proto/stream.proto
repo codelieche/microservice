@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package tutorial;
+option go_package = "github.com/codelieche/microservice/grpcdemo/proto/pb;pb";
+
+message NewsRequest {
+  string data = 1;  // 订阅的新闻类型
+}
+
+message NewsResponse {
+  string data = 1;  // 新闻数据
+}
+
+service NewsStore {
+  rpc GetNewsStream(NewsRequest) returns(stream NewsResponse);            // 服务端流模式
+  rpc PutNewsStream(stream NewsRequest) returns(NewsResponse);            // 客户端流模式
+  rpc GetPutNewsStream(stream NewsRequest) returns(stream NewsResponse);  // 双向流模式
+}

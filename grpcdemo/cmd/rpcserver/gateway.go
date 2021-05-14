@@ -17,7 +17,7 @@ func startGRPCGateway() {
 	))
 
 	//	1-2. 准备地址
-	address := "0.0.0.0:8082"
+	address := "0.0.0.0:9082"
 
 	// 1-3. 准备logger实例
 	logger, _ := zap.NewProduction()
