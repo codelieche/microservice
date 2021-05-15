@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package tutorial;
+option go_package = "./pb;pb";
+
+message Pong {
+  bool status = 1;    // 状态
+  string message = 2; // 消息内容
+}

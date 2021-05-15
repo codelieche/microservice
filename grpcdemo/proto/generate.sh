@@ -28,6 +28,7 @@ function generate() {
     echo "$(date '+%F %T'): 开始处理${FILE}.proto: (${FILE}, gateway ${GATEWAY})"
 
     # 2. 生成grpc proto相关代码
+    # 因为我们这里设置了生成的目标文件存放目录，所以option go_package里面设置的目录不相同的时候，是会以命令行传入的为准
     protoc -I=. --go_out=paths=source_relative:${TARGET_DIR} \
          --go-grpc_out=require_unimplemented_servers=false:${TARGET_DIR} --go-grpc_opt=paths=source_relative \
         ./"${FILE}".proto
@@ -35,11 +36,14 @@ function generate() {
     # 3. 生产grpc gateway相关代码
     if [[ $GATEWAY == "true" ]];then
         echo "$(date '+%F %T'): 开始处理${FILE} gateway"
+        # 因为我们这里设置了生成的目标文件存放目录，所以option go_package里面设置的目录不相同的时候，是会以命令行传入的为准
         protoc -I=. --grpc-gateway_out=paths=source_relative,grpc_api_configuration=./yaml/"${FILE}".yaml:${TARGET_DIR} ./"${FILE}".proto
     fi
 
 }
 
+
+generate base false
 # 处理hello.proto文件
 generate hello true
 # 处理stream.proto文件

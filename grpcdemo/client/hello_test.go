@@ -5,10 +5,37 @@ import (
 	"github.com/codelieche/microservice/grpcdemo/proto/pb"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"testing"
 	"time"
 )
+
+func TestGreeter_Ping(t *testing.T) {
+	// 1. connect
+	addr := "127.0.0.1:9081"
+	//conn, err := grpc.Dial(addr) // grpc: no transport security set
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// 2. get user rpc client
+	userClient := pb.NewGreeterClient(conn)
+
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+
+	r := &emptypb.Empty{}
+	if response, err := userClient.Ping(ctx, r); err != nil {
+		t.Error(err)
+		return
+	} else {
+		log.Println(response)
+	}
+}
 
 func TestGreeter_SayHello(t *testing.T) {
 	// 1. connect

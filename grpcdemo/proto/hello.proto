@@ -1,8 +1,12 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+import "base.proto";
+
 // 当是跨语言调用的时候，package注意配置正确
 package tutorial;
-option go_package="github.com/codelieche/microservice/grpcdemo/proto/pb;pb";
+option go_package="./pb;pb";
+// 如果执行protoc命令如果传递了paths相关值，会以命令行传递的为准
 
 message HelloRequest {
   string message = 1;
@@ -14,4 +18,5 @@ message HelloResponse {
 
 service Greeter {
   rpc SayHello(HelloRequest) returns (HelloResponse);
+  rpc Ping(google.protobuf.Empty) returns(Pong);
 }

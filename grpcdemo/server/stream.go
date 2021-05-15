@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/codelieche/microservice/grpcdemo/proto/pb"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 	"log"
 	"sync"
@@ -18,7 +20,15 @@ func NewNewsStoreService(logger *zap.Logger) pb.NewsStoreServer {
 	return &NewsStoreService{logger: logger}
 }
 
-func (s NewsStoreService) GetNewsStream(request *pb.NewsRequest, server pb.NewsStore_GetNewsStreamServer) error {
+func (s *NewsStoreService) Ping(ctx context.Context, empty *emptypb.Empty) (*pb.Pong, error) {
+	pong := &pb.Pong{
+		Status:  true,
+		Message: "pong",
+	}
+	return pong, nil
+}
+
+func (s *NewsStoreService) GetNewsStream(request *pb.NewsRequest, server pb.NewsStore_GetNewsStreamServer) error {
 	// 发送十条新闻
 	index := 0
 	category := request.Data
@@ -42,7 +52,7 @@ func (s NewsStoreService) GetNewsStream(request *pb.NewsRequest, server pb.NewsS
 	return nil
 }
 
-func (s NewsStoreService) PutNewsStream(server pb.NewsStore_PutNewsStreamServer) error {
+func (s *NewsStoreService) PutNewsStream(server pb.NewsStore_PutNewsStreamServer) error {
 	// 从客户端推流中不断获取请求
 	for {
 		if item, err := server.Recv(); err != nil {
@@ -61,7 +71,7 @@ func (s NewsStoreService) PutNewsStream(server pb.NewsStore_PutNewsStreamServer)
 	return nil
 }
 
-func (s NewsStoreService) GetPutNewsStream(server pb.NewsStore_GetPutNewsStreamServer) error {
+func (s *NewsStoreService) GetPutNewsStream(server pb.NewsStore_GetPutNewsStreamServer) error {
 	// 1. 并发处理服务端和客户端的推流
 	wg := sync.WaitGroup{}
 	wg.Add(2)

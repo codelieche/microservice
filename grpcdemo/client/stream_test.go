@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/codelieche/microservice/grpcdemo/proto/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 	"log"
 	"sync"
@@ -26,6 +27,33 @@ func getNewsStoreClient() pb.NewsStoreClient {
 
 	// 3. 返回
 	return newsStoreClient
+}
+
+func TestNewsStoreService_Ping(t *testing.T) {
+	// 1. connect
+	addr := "127.0.0.1:9081"
+	//conn, err := grpc.Dial(addr) // grpc: no transport security set
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// 2. get news store rpc client
+	newsStoreClient := pb.NewNewsStoreClient(conn)
+
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+
+	// 3. 开始发送ping
+	r := &emptypb.Empty{}
+	if response, err := newsStoreClient.Ping(ctx, r); err != nil {
+		t.Error(err)
+		return
+	} else {
+		log.Println(response)
+	}
 }
 
 func TestNewsStoreService_GetNewsStream(t *testing.T) {

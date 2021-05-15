@@ -3,6 +3,8 @@ config_version: 3
 
 http:
   rules:
+    - selector: tutorial.Greeter.Ping
+      get: /v1/hello/ping
     - selector: tutorial.Greeter.SayHello
       post: /v1/hello/sayhello
       body: "*"
