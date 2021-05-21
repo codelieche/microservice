@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"github.com/codelieche/microservice/grpcdemo/intercepetor"
+	"github.com/codelieche/microservice/grpcdemo/interceptor"
 	"github.com/codelieche/microservice/grpcdemo/proto/pb"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
@@ -89,7 +89,7 @@ func TestGreeter_SayHello(t *testing.T) {
 func TestGreeter_Ping_With_Interceptor(t *testing.T) {
 	// 1. get grpc client
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithUnaryInterceptor(intercepetor.RerequestBeforePrint))
+	opts = append(opts, grpc.WithUnaryInterceptor(interceptor.RequestBeforePrint))
 	client, err := getGreeterServerClient(opts)
 
 	if err != nil {

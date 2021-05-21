@@ -1,4 +1,4 @@
-package intercepetor
+package interceptor
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 客户端的拦截器示例
 */
 
-func RerequestBeforePrint(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+func RequestBeforePrint(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	start := time.Now()
 	msg := fmt.Sprintf("我现在开始发起请求：%s", method)
 	log.Println(msg)

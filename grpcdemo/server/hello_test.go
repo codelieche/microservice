@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/codelieche/microservice/grpcdemo/intercepetor"
+	"github.com/codelieche/microservice/grpcdemo/interceptor"
 	"github.com/codelieche/microservice/grpcdemo/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -52,6 +52,7 @@ func TestNewHelloService(t *testing.T) {
 	}
 }
 
+// TestHelloService_Interceptor 启动带有拦截器的server
 func TestHelloService_Interceptor(t *testing.T) {
 	// 1. 准备 lis
 	lis, err := getGrpcServerListener()
@@ -62,7 +63,7 @@ func TestHelloService_Interceptor(t *testing.T) {
 
 	// 2. 准备ServerOption
 	var opts []grpc.ServerOption
-	opts = append(opts, grpc.UnaryInterceptor(intercepetor.RequestInfoPrint))
+	opts = append(opts, grpc.UnaryInterceptor(interceptor.RequestInfoPrint))
 
 	// 3. 实例化grpc server
 	s := grpc.NewServer(opts...)

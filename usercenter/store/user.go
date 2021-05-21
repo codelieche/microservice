@@ -3,11 +3,13 @@ package store
 import (
 	"context"
 	"errors"
+	"github.com/codelieche/microservice/codelieche/filters"
 	"github.com/codelieche/microservice/codelieche/utils"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
@@ -103,10 +105,24 @@ func (u *userStore) SigningToken(ctx context.Context, user *core.User) (signingS
 	return token.SignedString([]byte(cfg.Key))
 }
 
-func (u *userStore) List(ctx context.Context, offset int, limit int) (users []*core.User, err error) {
+func (u *userStore) List(ctx context.Context, offset int, limit int, filterActions ...filters.Filter) (users []*core.User, err error) {
 	query := u.db.Model(&core.User{}).
 		Select("id, username, nickname, email,phone").
-		Offset(offset).Limit(limit).Find(&users)
+		Offset(offset).Limit(limit)
+
+	if filterActions != nil && len(filterActions) > 0 {
+		for _, action := range filterActions {
+			log.Println("action, action == nil, action != nil:", action, action == nil, action != nil)
+			if action == nil {
+				continue
+			}
+			if action != nil {
+				query = action.Filter(query)
+			}
+		}
+	}
+
+	query.Find(&users)
 	if query.Error != nil {
 		return nil, query.Error
 	} else {
@@ -149,9 +165,21 @@ func (u *userStore) Delete(ctx context.Context, user *core.User) error {
 	panic("implement me")
 }
 
-func (u *userStore) Count(ctx context.Context) (int64, error) {
+func (u *userStore) Count(ctx context.Context, filterActions ...filters.Filter) (int64, error) {
 	var count int64
-	if err := u.db.Model(&core.User{}).Count(&count).Error; err != nil {
+
+	query := u.db.Model(&core.User{})
+
+	if filterActions != nil && len(filterActions) > 0 {
+		for _, action := range filterActions {
+			//log.Println("action, action == nil, action != nil:", action, action == nil, action != nil)
+			if action != nil {
+				query = action.Filter(query)
+			}
+		}
+	}
+
+	if err := query.Count(&count).Error; err != nil {
 		return 0, err
 	} else {
 		return count, nil

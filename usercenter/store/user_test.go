@@ -58,7 +58,7 @@ func testUserFind(store *userStore, i int64) func(t *testing.T) {
 
 func testUserCount(store *userStore) func(t *testing.T) {
 	return func(t *testing.T) {
-		if count, err := store.Count(noContext); err != nil {
+		if count, err := store.Count(noContext, nil, nil, nil); err != nil {
 			t.Error(err)
 		} else {
 			log.Println("获取到用户总数为：", count)

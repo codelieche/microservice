@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/codelieche/microservice/codelieche/filters"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -95,12 +96,13 @@ func (s *userService) ParseToken(ctx context.Context, tokenStr string) (claims *
 	}
 }
 
-func (s *userService) List(ctx context.Context, offset int, limit int) (users []*core.User, err error) {
-	return s.store.List(ctx, offset, limit)
+// List 获取用户列表
+func (s *userService) List(ctx context.Context, offset int, limit int, filterActions ...filters.Filter) (users []*core.User, err error) {
+	return s.store.List(ctx, offset, limit, filterActions...)
 }
 
-func (s *userService) Count(ctx context.Context) (int64, error) {
-	return s.store.Count(ctx)
+func (s *userService) Count(ctx context.Context, filterActions ...filters.Filter) (int64, error) {
+	return s.store.Count(ctx, filterActions...)
 }
 
 func (s *userService) SetPassword(ctx context.Context, user *core.User, password string) error {

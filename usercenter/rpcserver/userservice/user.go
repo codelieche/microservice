@@ -96,8 +96,8 @@ func (s *UserService) ListUser(ctx context.Context, request *userpb.ListRequest)
 	if request.PageSize <= 0 {
 		request.PageSize = 10
 	}
-	users, err := s.service.List(ctx, int(request.Page), 10)
-	count, err := s.service.Count(ctx)
+	users, err := s.service.List(ctx, int(request.Page), 10, nil, nil)
+	count, err := s.service.Count(ctx, nil, nil)
 
 	if err != nil {
 		return nil, err
@@ -118,7 +118,6 @@ func (s *UserService) ListUser(ctx context.Context, request *userpb.ListRequest)
 			results = append(results, a)
 		}
 	}
-
 	return &userpb.ListResponse{
 		Count:   count,
 		Results: results,

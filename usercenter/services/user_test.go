@@ -122,12 +122,13 @@ func Test_userService_List(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &userService{
 				store: userStore,
 			}
-			gotUsers, err := s.List(tt.args.ctx, tt.args.offset, tt.args.limit)
+			gotUsers, err := s.List(tt.args.ctx, tt.args.offset, tt.args.limit, nil, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return

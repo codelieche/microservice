@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"github.com/codelieche/microservice/codelieche/filters"
 	"github.com/codelieche/microservice/usercenter/controllers/forms"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
@@ -180,8 +181,50 @@ func (controller *UserController) Auth(c *gin.Context) {
 }
 
 func (controller *UserController) List(c *gin.Context) {
-	// 1. 获取分页
+	// 1. 获取相关数据
+	// 1-1. 获取分页
 	pagination := controller.ParsePagination(c)
+	// 1-2：获取过滤和联合表的字段
+	filterOptions := []*filters.FilterOption{
+		&filters.FilterOption{
+			QueryKey: "id__gte",
+			Column:   "id",
+			Op:       filters.FILTER_GTE,
+		},
+		&filters.FilterOption{
+			QueryKey: "id__lte",
+			Column:   "id",
+			Op:       filters.FILTER_LTE,
+		},
+		&filters.FilterOption{
+			QueryKey: "username__contains",
+			Column:   "username",
+			Op:       filters.FILTER_CONTAINS,
+		},
+		&filters.FilterOption{
+			QueryKey: "nickname__contains",
+			Column:   "nickname",
+			Op:       filters.FILTER_CONTAINS,
+		},
+		&filters.FilterOption{
+			Column: "phone",
+		},
+	}
+
+	// 过滤的操作列表
+	var filterActions []filters.Filter
+	filterAction := filters.FromQueryGetFilterAction(c, filterOptions)
+	// 判断过滤操作是否为空
+	if filterAction != nil {
+		filterActions = append(filterActions, filterAction)
+	}
+
+	// 1-3: 搜索
+	searchAction := filters.FromQueryGetSearchAction(c, []string{"username", "email", "phone"})
+	// 判断搜索操作是否为空
+	if searchAction != nil {
+		filterActions = append(filterActions, searchAction)
+	}
 
 	// 2. 开始获取数据
 	offset := pagination.PageSize * (pagination.Page - 1)
@@ -196,13 +239,13 @@ func (controller *UserController) List(c *gin.Context) {
 	// 协程1：获取用户列表
 	go func() {
 		defer wg.Done()
-		users, err = controller.service.List(ctx, offset, pagination.PageSize)
+		users, err = controller.service.List(ctx, offset, pagination.PageSize, filterActions...)
 	}()
 	// 协程2：获取用户数量
 	go func() {
 		// 获取用户数
 		defer wg.Done()
-		count, err = controller.service.Count(ctx)
+		count, err = controller.service.Count(ctx, filterActions...)
 	}()
 	// 等待2个协程完成
 	wg.Wait()
@@ -320,6 +363,5 @@ func (controller *UserController) ResetPassword(c *gin.Context) {
 			controller.HandleOK(c, msg)
 			return
 		}
-
 	}
 }

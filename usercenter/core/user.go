@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/codelieche/microservice/codelieche/filters"
 	"github.com/codelieche/microservice/codelieche/utils"
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ type (
 		SigningToken(ctx context.Context, user *User) (signingStr string, err error)
 
 		// List 获取用户列表
-		List(ctx context.Context, offset int, limit int) (users []*User, err error)
+		List(ctx context.Context, offset int, limit int, filterActions ...filters.Filter) (users []*User, err error)
 
 		// SetPassword set user password
 		SetPassword(ctx context.Context, user *User, password string) error
@@ -56,7 +57,7 @@ type (
 		Delete(context.Context, *User) error
 
 		// Count returns 用户的数量
-		Count(context.Context) (int64, error)
+		Count(ctx context.Context, filterActions ...filters.Filter) (int64, error)
 
 		// CountByTeam 根据团队获取总共的用户数量
 		CountByTeam(context.Context, int64) (int64, error)
@@ -82,13 +83,13 @@ type (
 		ParseToken(ctx context.Context, tokenStr string) (claims *UserClaims, err error)
 
 		//	List 获取用户列表
-		List(ctx context.Context, offset int, limit int) (users []*User, err error)
+		List(ctx context.Context, offset int, limit int, filterActions ...filters.Filter) (users []*User, err error)
 
 		// SetPassword set user password
 		SetPassword(ctx context.Context, user *User, password string) error
 
 		// Count returns 用户的数量
-		Count(context.Context) (int64, error)
+		Count(ctx context.Context, filterActions ...filters.Filter) (int64, error)
 	}
 )
 
