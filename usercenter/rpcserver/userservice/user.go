@@ -118,6 +118,7 @@ func (s *UserService) ListUser(ctx context.Context, request *userpb.ListRequest)
 			results = append(results, a)
 		}
 	}
+
 	return &userpb.ListResponse{
 		Count:   count,
 		Results: results,

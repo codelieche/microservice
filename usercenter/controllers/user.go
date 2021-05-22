@@ -184,7 +184,8 @@ func (controller *UserController) List(c *gin.Context) {
 	// 1. 获取相关数据
 	// 1-1. 获取分页
 	pagination := controller.ParsePagination(c)
-	// 1-2：获取过滤和联合表的字段
+
+	// 1-2：过滤操作选项：过滤和联合表的字段
 	filterOptions := []*filters.FilterOption{
 		&filters.FilterOption{
 			QueryKey: "id__gte",
@@ -211,20 +212,15 @@ func (controller *UserController) List(c *gin.Context) {
 		},
 	}
 
-	// 过滤的操作列表
-	var filterActions []filters.Filter
-	filterAction := filters.FromQueryGetFilterAction(c, filterOptions)
-	// 判断过滤操作是否为空
-	if filterAction != nil {
-		filterActions = append(filterActions, filterAction)
-	}
+	// 1-3: 搜索字段
+	searchFields := []string{"username", "email", "phone"}
 
-	// 1-3: 搜索
-	searchAction := filters.FromQueryGetSearchAction(c, []string{"username", "email", "phone"})
-	// 判断搜索操作是否为空
-	if searchAction != nil {
-		filterActions = append(filterActions, searchAction)
-	}
+	// 1-4: 排序字段，默认排序为id
+	orderingFields := []string{"id", "username", "phone", "email"}
+	defaultOrdering := "id"
+
+	// 1-5：获取过滤操作的列表【来自继承的BaseController】
+	filterActions := controller.FilterAction(c, filterOptions, searchFields, orderingFields, defaultOrdering)
 
 	// 2. 开始获取数据
 	offset := pagination.PageSize * (pagination.Page - 1)
@@ -232,6 +228,7 @@ func (controller *UserController) List(c *gin.Context) {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
 	var users []*core.User
 	var err error
 	var count int64

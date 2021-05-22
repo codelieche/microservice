@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/codelieche/microservice/codelieche/filters"
 	"github.com/codelieche/microservice/usercenter/core"
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/gin-gonic/gin"
@@ -104,4 +105,39 @@ func (controller *BaseController) ParsePagination(c *gin.Context) *core.Paginati
 		Page:     page,
 		PageSize: pageSize,
 	}
+}
+
+// FilterAction 处理过滤操作
+func (controller *BaseController) FilterAction(
+	c *gin.Context, filterOptions []*filters.FilterOption,
+	searchFields []string, orderingFields []string, defaultOrdering string) (filterActions []filters.Filter) {
+
+	// 1-1: 过滤的操作
+	filterAction := filters.FromQueryGetFilterAction(c, filterOptions)
+	// 判断过滤操作是否为空
+	if filterAction != nil {
+		filterActions = append(filterActions, filterAction)
+	}
+
+	// 1-2: 搜索的操作
+	searchAction := filters.FromQueryGetSearchAction(c, []string{"username", "email", "phone"})
+	// 判断搜索操作是否为空
+	if searchAction != nil {
+		filterActions = append(filterActions, searchAction)
+	}
+
+	// 1-3: 排序
+	var orderingAction filters.Filter
+	if orderingFields != nil && defaultOrdering != "" {
+		orderingAction = filters.FromQueryGetOrderingActionWithDefault(c, orderingFields, defaultOrdering)
+	} else {
+		orderingAction = filters.FromQueryGetOrderingAction(c, orderingFields)
+	}
+	// 判断排序操作是否为空
+	if orderingAction != nil {
+		filterActions = append(filterActions, orderingAction)
+	}
+
+	// 2. 最后返回过滤操作的列表
+	return filterActions
 }

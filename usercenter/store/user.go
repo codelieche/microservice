@@ -9,7 +9,6 @@ import (
 	"github.com/codelieche/microservice/usercenter/internal/config"
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -105,6 +104,7 @@ func (u *userStore) SigningToken(ctx context.Context, user *core.User) (signingS
 	return token.SignedString([]byte(cfg.Key))
 }
 
+// List 获取用户的列表，filterActions是Filter的接口对象可多个
 func (u *userStore) List(ctx context.Context, offset int, limit int, filterActions ...filters.Filter) (users []*core.User, err error) {
 	query := u.db.Model(&core.User{}).
 		Select("id, username, nickname, email,phone").
@@ -112,7 +112,6 @@ func (u *userStore) List(ctx context.Context, offset int, limit int, filterActio
 
 	if filterActions != nil && len(filterActions) > 0 {
 		for _, action := range filterActions {
-			log.Println("action, action == nil, action != nil:", action, action == nil, action != nil)
 			if action == nil {
 				continue
 			}
